@@ -50,114 +50,18 @@ public enum State {
 	
 	//GESTURES
     
-    WaitThread waitThread = null;
-    boolean hasHadTwoDown= false;
-    boolean hasHadThreeDown=false;
-    public long startOfEvent = 0L;
-    public boolean seenThree = false;
-    ThreeFingerThread thread3 = null;
+    
+    boolean[] hasBegun = new boolean[3];
+    FingerThread[] fingerThread = new FingerThread[3];
+    int fingersDown=0;
+    
+    //NEED THIS LINE
+    MultiTouchDetector multiTouchDetector = new MultiTouchDetector();
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
-    		
-    		int numPointers = event.getPointerCount();
-        	switch (event.getActionIndex()){
-        		case (MotionEvent.ACTION_UP):
-        			//Log.i("myGesture", event.getEventTime() + ": action up with " + numPointers);
-        			if (numPointers==2){
-        			}
-        		case (MotionEvent.ACTION_DOWN):
-        			Log.i("myGesture", "down with "+ event.getPointerCount());
-        			//if (waitThread != null){
-        				//stateChange=true;
-        				//Log.i("myGesture", "state changed");
-        			
-        				
-        			//}
-        			if (event.getPointerCount()==3){
-        				//STOP OLD THREAD
-        				if (thread3!=null){
-        					thread3.setStartTime(Calendar.getInstance().getTimeInMillis());
-        				}
-        				
-        				if (!hasHadThreeDown){
-        					hasHadThreeDown=true;
-        					thread3 = new ThreeFingerThread();
-        					thread3.start();
-        					Log.i("myGesture3", "3 FINGERS DOWN");
-        				}
-        				
-        			}
-        			if (event.getPointerCount()==2){
-        				if (!hasHadTwoDown){
-        					hasHadTwoDown=true;
-        					Log.i("myGesture", "2 FINGERS DOWN");
-        				}
-        			}
-        			if (event.getPointerCount()==1){
-        				//FIRE A THREAD THAT WAITS
-        				if (hasHadTwoDown){
-        					//Log.i("myGesture", "fired a new thread");
-        					//waitThread = new WaitThread();
-        					//waitThread.start();
-        				}
-        			}
-        		
-        		case (MotionEvent.ACTION_MOVE):
-        			//Log.i("myGesture", "move with "+ event.getPointerCount());
-        		case (MotionEvent.ACTION_OUTSIDE):
-        			//Log.i("myGesture", "outside with "+ event.getPointerCount());
-        		case (MotionEvent.ACTION_POINTER_DOWN):
-        			//Log.i("myGesture", "pointer down with "+ event.getPointerCount());
-        			if (event.getPointerCount()==2 && double_tap_down){
-        				
-        				double_tap_pointer_down=true;
-        				//Log.i("myGesture", "step 2");
-        				
-        			}
-        		case (MotionEvent.ACTION_POINTER_UP):
-        			//Log.i("myGesture", "pointer up with "+ event.getPointerCount());
-        			if ((event.getPointerCount()==2) && double_tap_pointer_down){
-        				//Log.i("myGesture", "double tap!");
-        				//start over again
-        				double_tap_down=false;
-            			double_tap_pointer_down=false;
-            			coordinatesSet=false;
-        			}
-        			
-        		case (MotionEvent.ACTION_SCROLL):
-        			//if (event.getX(0) != event.getHistoricalX(0)){
-
-    				float currentX = event.getX(0);
-        			float currentY = event.getY(0);
-        			if (!coordinatesSet){
-        				oldX=currentX;
-        				oldY=currentY;
-        				coordinatesSet=true;
-        			}
-        			if (event.getPointerCount()==2){
-        				
-        			
-        			if ((Math.abs(currentX - oldX))>10f){
-        				//Log.i("myGesture", "current: "+ currentX + "old: " + oldX);
-        				//start again
-        				//Log.i("myGesture", "double scrolling");
-        				double_tap_down=false;
-            			double_tap_pointer_down=false;
-        			}
-        			oldX=currentX;
-        			oldY=currentY;
-        	}
-        	//else Log.i("myGesture", "Action is index: " + event.getActionIndex());
-        
-        	gestureDetector.onTouchEvent(event);
-        
-    }
-        	return false;
-    }
-    float oldX;
-    float oldY;
-    boolean coordinatesSet=false;
-	  @Override
+    		multiTouchDetector.onTouchEvent(event);
+    		return true;
+    }	  @Override
 	    public boolean onDown(MotionEvent e) {
 	        //Log.i("myGesture", "onDown with pointer count: "+ e.getPointerCount());
 	        return true;
@@ -238,96 +142,44 @@ public enum State {
 		return false;
 	}
 
-	
-public long currentDoubleClick= 0L;
-public long previousDoubleClick= 0L;
 
 
-public boolean stateChange;
-
-
-	private class ThreeFingerThread extends Thread{
-		private final long TIMEOUT= 300L;
-		private int index;
-		long startTime;
+	private class FingerThread extends Thread{
+		private final long TIMEOUT= 500L;
+		private long startTime;
+		private int numFingers;
 		
-		public ThreeFingerThread(){
-			hasHadThreeDown=true;
-			seenThree=false;
-			i+=1;
-			index=i;
+		public FingerThread(int numFingers){
+			this.numFingers=numFingers;
 			startTime = Calendar.getInstance().getTimeInMillis();
 		}
 		
 		public void setStartTime(long newTime){
-			Log.i("myGesture3", "setting new time to: "+ newTime);
 			startTime=newTime;
 		}
 		
 		@Override
 		 synchronized public void run(){
-			
-			//IF WE DONT DETECT A 3 FOR 500 MS, 3 IS OVER
+			//IF WE DONT DETECT A 3 FOR TIMEOUT MS, 3 IS OVER
 			while (Calendar.getInstance().getTimeInMillis()-startTime < TIMEOUT ){
 				//SPIN
 			}
+			Log.i("myGesture", numFingers + " FINGERS LIFT");
+			int fingersIndex = numFingers-1;
+			hasBegun[fingersIndex]=false;
 			
-			Log.i("myGesture3", "3 FINGERS LIFT");
-			hasHadThreeDown=false;
-			
-		}
-	}
-	
-int i = 0;
-	
-    private class WaitThread extends Thread {
-  
-
-		private int timeOfLastOne;
-		
-		public void setTimeOfLastOne(int t){
-			timeOfLastOne=t;
-		}
-		
-		
-		public WaitThread(){
-			stateChange=false;
-		}
-	
-		@Override
-		synchronized public void run(){
-			
-			Log.i("myGesture", "thread is running");
-			long startTime = Calendar.getInstance().getTimeInMillis();
-			
-			
-			    while(!stateChange && Calendar.getInstance().getTimeInMillis() - startTime < 100){
-			        
-			    
-			    }
-				if (stateChange){
-					waitThread=null;
-					return;
+			for (int i = 0; i<3; i++){
+				//FIND GREATEST FINGER DOWN
+				if (hasBegun[2-i]){
+					fingersDown = 2-i+1;
+					break;
 				}
-			    
-				
-			
-			//state
-			
-			currentDoubleClick=Calendar.getInstance().getTimeInMillis();			
-			if (previousDoubleClick!=0L && currentDoubleClick!=0L){
-			
-				if (currentDoubleClick - previousDoubleClick<150L){
-					//TOO CLOSE TOGETHER
-					return;
-				}
+				fingersDown=0;
 			}
-			Log.i("myGesture", "2 FINGERS UP");
-			previousDoubleClick=currentDoubleClick;
-			hasHadTwoDown=false;
-			waitThread=null;
+			
 		}
-		
 	}
+	
+
 }
 
