@@ -34,6 +34,7 @@ public class MultiTouchDetector implements GestureDetector.OnGestureListener {
     			}
     			//IF THERE WERE PREVIOUSLY NO FINGERS, LISTEN FOR TAP
     			if (!hasFingersDown()){
+    				scrollIndex=0;
     				tThread = new TapThread(numFingers);
     				tThread.start();
     			}
@@ -155,8 +156,11 @@ public class MultiTouchDetector implements GestureDetector.OnGestureListener {
 					}	
 				}
 				//MAKE SURE FINGERS STAY OFF FOR A FEW MILIS
-				if (!hasFingersDown() && notScrolling){
+				if (!hasFingersDown()){
+					if (notScrolling){
 					Log.i("myGesture", "*****" + this.numFingers + " FINGER TAP******");
+					}
+					scrollIndex = 0;
 				}
 			
 			
@@ -185,18 +189,29 @@ public class MultiTouchDetector implements GestureDetector.OnGestureListener {
 		// TODO Auto-generated method stub
 		
 	}
-
+	
+	int scrollIndex = 0;
 	@Override
 	public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX,
 			float distanceY) {
+	
+		Log.i("myGestured", "scroll amount is "+ distanceX);
+		Log.i("myGesture", "scrollindex is: "+ scrollIndex);
 		final float THRESHOLD = 20;
+		final int TIMESTOSCROLL=5;
 		if (distanceX > THRESHOLD){
-			notScrolling=false;
-			Log.i("myGesture", "scrolling back with "+ fingersDown);
+			scrollIndex++;
+				if (scrollIndex>TIMESTOSCROLL) {
+					notScrolling=false;
+					Log.i("myGesture", "scrolling back with "+ fingersDown);
+				}
 		}
 		if (distanceX < -1*THRESHOLD){
-			notScrolling=false;
-			Log.i("myGesture", "scrolling forward with "+ fingersDown);
+			scrollIndex++;
+				if (scrollIndex>TIMESTOSCROLL) {
+					notScrolling=false;
+					Log.i("myGesture", "scrolling forward with "+ fingersDown);
+				}
 		}
 		// TODO Auto-generated method stub
 		return false;
