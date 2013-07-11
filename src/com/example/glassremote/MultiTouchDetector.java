@@ -1,7 +1,6 @@
 package com.example.glassremote;
 
 import java.util.Calendar;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 
@@ -12,15 +11,16 @@ public class MultiTouchDetector implements GestureDetector.OnGestureListener {
     int fingersDown=0;
     TapThread tThread;
     GestureDetector gestureDetector;
+    MultiTouchListener listener;
     
    @SuppressWarnings("deprecation")
-   public MultiTouchDetector(){
+   public MultiTouchDetector(MultiTouchListener listener){
 	   gestureDetector = new GestureDetector(this);
+	   this.listener=listener;
    }
     
     public void onTouchEvent(MotionEvent event){
     	gestureDetector.onTouchEvent(event);
-    	//Log.i("myGesture", fingersDown + " DOWN at: " + event.getEventTime());
 		int numFingers = event.getPointerCount();
 		int fingerIndex = numFingers-1;
 		
@@ -32,7 +32,6 @@ public class MultiTouchDetector implements GestureDetector.OnGestureListener {
     			if (currentThread !=null){
     				currentThread.setStartTime(Calendar.getInstance().getTimeInMillis());
     			}
-    			//IF THERE WERE PREVIOUSLY NO FINGERS, LISTEN FOR TAP
     			if (!hasFingersDown()){
     				scrollIndex=0;
     				tThread = new TapThread(numFingers);
@@ -53,17 +52,12 @@ public class MultiTouchDetector implements GestureDetector.OnGestureListener {
     				currentThread.start();
     			}
     			
-    		
+    		//UNIMPLEMENTED
     		case (MotionEvent.ACTION_MOVE):
-    			//Log.i("myGesture", "move with "+ event.getPointerCount());
     		case (MotionEvent.ACTION_OUTSIDE):
-    			//Log.i("myGesture", "outside with "+ event.getPointerCount());
-    		case (MotionEvent.ACTION_POINTER_DOWN):
-    			//Log.i("myGesture", "pointer down with "+ event.getPointerCount());	
+    		case (MotionEvent.ACTION_POINTER_DOWN):	
     		case (MotionEvent.ACTION_POINTER_UP):
-    			//Log.i("myGesture", "pointer up with "+ event.getPointerCount());
     		case (MotionEvent.ACTION_SCROLL):
-    			//if (event.getX(0) != event.getHistoricalX(0))
     	
 }
     	
@@ -83,6 +77,7 @@ public class MultiTouchDetector implements GestureDetector.OnGestureListener {
 		private int numFingers;
 		
 		public FingerThread(int numFingers){
+			scrollIndex=0;
 			this.numFingers=numFingers;
 			startTime = Calendar.getInstance().getTimeInMillis();
 		}
@@ -93,17 +88,15 @@ public class MultiTouchDetector implements GestureDetector.OnGestureListener {
 		
 		@Override
 		 synchronized public void run(){
-			//IF WE DONT DETECT A 3 FOR TIMEOUT MS, 3 IS OVER
+		
 			while (Calendar.getInstance().getTimeInMillis()-startTime < TIMEOUT ){
 				//SPIN
 			}
 			
 			int fingersIndex = numFingers-1;
 			hasBegun[fingersIndex]=false;
-			//Log.i("myGesture", numFingers + " FINGERS LIFT hasFingers is: " + hasFingersDown());
 			
 			for (int i = 0; i<3; i++){
-				//FIND GREATEST FINGER DOWN
 				if (hasBegun[2-i]){
 					fingersDown = 2-i+1;
 					break;
@@ -117,7 +110,7 @@ public class MultiTouchDetector implements GestureDetector.OnGestureListener {
     	
     boolean notScrolling=true;
     private class TapThread extends Thread{
-    	//MAGIC NUMBER
+    	
 		private final long TIMEOUT= 700L;
 		private final long NOFINGERTIMEOUT = 300L;
 		private long startTime;
@@ -158,7 +151,7 @@ public class MultiTouchDetector implements GestureDetector.OnGestureListener {
 				//MAKE SURE FINGERS STAY OFF FOR A FEW MILIS
 				if (!hasFingersDown()){
 					if (notScrolling){
-					Log.i("myGesture", "*****" + this.numFingers + " FINGER TAP******");
+						listener.onTapUp(numFingers);
 					}
 					scrollIndex = 0;
 				}
@@ -194,25 +187,17 @@ public class MultiTouchDetector implements GestureDetector.OnGestureListener {
 	@Override
 	public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX,
 			float distanceY) {
-	
-		Log.i("myGestured", "scroll amount is "+ distanceX);
-		Log.i("myGesture", "scrollindex is: "+ scrollIndex);
-		final float THRESHOLD = 20;
+		final float THRESHOLD = 15;
 		final int TIMESTOSCROLL=5;
-		if (distanceX > THRESHOLD){
+		
+		if (Math.abs(distanceX)>THRESHOLD){
 			scrollIndex++;
-				if (scrollIndex>TIMESTOSCROLL) {
-					notScrolling=false;
-					Log.i("myGesture", "scrolling back with "+ fingersDown);
-				}
+			if (scrollIndex>TIMESTOSCROLL){
+				notScrolling=false;
+				listener.onScroll(e1, e2, distanceX, distanceY, fingersDown);
+			}
 		}
-		if (distanceX < -1*THRESHOLD){
-			scrollIndex++;
-				if (scrollIndex>TIMESTOSCROLL) {
-					notScrolling=false;
-					Log.i("myGesture", "scrolling forward with "+ fingersDown);
-				}
-		}
+		
 		// TODO Auto-generated method stub
 		return false;
 	}

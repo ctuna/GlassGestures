@@ -10,7 +10,7 @@ import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MotionEvent;
 
-public class MainActivity extends Activity implements GestureDetector.OnGestureListener, GestureDetector.OnDoubleTapListener{
+public class MainActivity extends Activity implements GestureDetector.OnGestureListener, MultiTouchListener{
 GestureDetector gestureDetector;
 GestureDetector.OnDoubleTapListener doubleGestureDetector;
 
@@ -56,7 +56,8 @@ public enum State {
     int fingersDown=0;
     
     //NEED THIS LINE
-    MultiTouchDetector multiTouchDetector = new MultiTouchDetector();
+    
+    MultiTouchDetector multiTouchDetector = new MultiTouchDetector(this);
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
     		multiTouchDetector.onTouchEvent(event);
@@ -122,25 +123,6 @@ public enum State {
 		return false;
 	}
 
-	@Override
-	public boolean onDoubleTap(MotionEvent arg0) {
-		Log.i("Double", "double tap detected by listener");
-		return false;
-	}
-
-	@Override
-	public boolean onDoubleTapEvent(MotionEvent arg0) {
-		Log.i("Double", "double tap detected by listener");
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean onSingleTapConfirmed(MotionEvent arg0) {
-		Log.i("Double", "double tap detected by listener");
-		// TODO Auto-generated method stub
-		return false;
-	}
 
 
 
@@ -178,6 +160,30 @@ public enum State {
 			}
 			
 		}
+	}
+
+
+
+	@Override
+	public void onTapUp(int numFingers) {
+		Log.i("myGesture", "tap with " + numFingers + " fingers");
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onScroll(MotionEvent e1, MotionEvent e2, float distanceX,
+			float distanceY, int numFingers) {
+		
+		if (distanceX > 0){
+			Log.i("myGesture", "scrolling back with "+ numFingers);
+				}
+		else{
+			Log.i("myGesture", "scrolling forward with "+ numFingers);
+				}
+		
+
+		
 	}
 	
 
