@@ -226,6 +226,7 @@ public class MultiTouchDetector implements GestureDetector.OnGestureListener {
 
 	@Override
 	public boolean onSingleTapUp(MotionEvent e) {
+		Log.i("debugging", fingersDown + "FINGER AT: "+ Calendar.getInstance().getTimeInMillis());
 		// TODO Auto-generated method stub
 		return false;
 	}

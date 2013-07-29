@@ -36,7 +36,7 @@ boolean double_tap_pointer_down=false;
 public boolean connectingToLaptop = false;
 
 //TWO NAVIGATES = TRUE means switching with 2 fingers, scrolling with 1 
-public boolean twoNavigates = false;
+public boolean twoNavigates = true;
 int fingersToNavigate;
 int fingersToScroll;
 
