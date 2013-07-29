@@ -599,13 +599,14 @@ public enum State {
 				//TODO: MUTE VARIABLE
 				if (currentVariable.hasBoolean()){
 					currentVariable.setBoolean(!currentVariable.getBoolean());
+					updateValue();
 				}
 				break;
 			case (VARIABLE_LEVEL):
 				
 				break;
 		}
-		resetLayout();
+	
 	
 		
 		}
@@ -644,7 +645,6 @@ public enum State {
 					updateValue(oldVal);
 					}
 					}
-			Log.i("var", "new value of var is : " + currentVariable.getContinuous());
 		}
 		}
 	}
