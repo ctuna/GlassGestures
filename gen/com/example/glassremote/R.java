@@ -27,17 +27,30 @@ public final class R {
         public static final int activity_horizontal_margin=0x7f050000;
         public static final int activity_vertical_margin=0x7f050001;
         public static final int mode_text_size=0x7f050002;
+        public static final int object_text_size=0x7f050003;
+        public static final int secondary_text_size=0x7f050005;
+        public static final int variable_text_size=0x7f050004;
     }
     public static final class drawable {
-        public static final int ic_launcher=0x7f020000;
+        public static final int glass_template=0x7f020000;
+        public static final int glass_tiny=0x7f020001;
+        public static final int glass_two_finger=0x7f020002;
+        public static final int ic_launcher=0x7f020003;
     }
     public static final class id {
-        public static final int action_settings=0x7f090002;
-        public static final int name_of_mode=0x7f090000;
-        public static final int value_of_mode=0x7f090001;
+        public static final int action_settings=0x7f090006;
+        public static final int list_holder=0x7f090003;
+        public static final int name_of_object=0x7f090001;
+        public static final int name_of_variable=0x7f090004;
+        public static final int progressBar1=0x7f090000;
+        public static final int scroller=0x7f090002;
+        public static final int variable_progress=0x7f090005;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;
+        public static final int object_activity=0x7f030001;
+        public static final int room_activity=0x7f030002;
+        public static final int variable_activity=0x7f030003;
     }
     public static final class menu {
         public static final int main=0x7f080000;

@@ -10,38 +10,10 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context=".MainActivity" >
 
-    <LinearLayout 
+    <ProgressBar
+        android:id="@+id/progressBar1"
+        style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
-        android:layout_height="fill_parent"
-        android:orientation="vertical"
-        android:layout_gravity="center"
-        android:paddingRight="20dp"
-        >
-        
-         <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="@android:color/white"
-        android:text="@string/name_of_control"
-        android:id="@+id/name_of_mode"
-        android:textSize="@dimen/mode_text_size" />
-         
-       
-        <TextView
-        android:id="@+id/value_of_mode"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="@android:color/white"
-        android:text="44"
-        android:textSize="@dimen/mode_text_size" />
-    </LinearLayout>
-        
-        
-       
-
-    <View
-    android:layout_width="1dip"
-    android:layout_height="fill_parent"
-    android:background="@android:color/white"
-	/>
+        android:layout_height="wrap_content" />
+    
 </LinearLayout>

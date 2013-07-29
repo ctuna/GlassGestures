@@ -4,6 +4,6 @@
     <string name="app_name">GlassRemote</string>
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
-    <string name="name_of_control">volume</string>
+    <string name="name_of_control">lamp</string>
 
 </resources>

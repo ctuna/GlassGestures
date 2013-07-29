@@ -1,11 +1,13 @@
 package com.example.glassremote;
 
 import java.util.Calendar;
+
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 
 public class MultiTouchDetector implements GestureDetector.OnGestureListener {
-	
+
     boolean[] hasBegun = new boolean[3];
     FingerThread[] fingerThread = new FingerThread[3];
     int fingersDown=0;
@@ -23,7 +25,7 @@ public class MultiTouchDetector implements GestureDetector.OnGestureListener {
     	gestureDetector.onTouchEvent(event);
 		int numFingers = event.getPointerCount();
 		int fingerIndex = numFingers-1;
-		
+
     	switch (event.getActionIndex()){
     		case (MotionEvent.ACTION_UP):
     			
@@ -75,36 +77,36 @@ public class MultiTouchDetector implements GestureDetector.OnGestureListener {
 		private final long TIMEOUT= 500L;
 		private long startTime;
 		private int numFingers;
-		
+
 		public FingerThread(int numFingers){
 			scrollIndex=0;
 			this.numFingers=numFingers;
 			startTime = Calendar.getInstance().getTimeInMillis();
 		}
-		
+
 		public void setStartTime(long newTime){
 			startTime=newTime;
 		}
-		
+
 		@Override
 		 synchronized public void run(){
-		
+
 			while (Calendar.getInstance().getTimeInMillis()-startTime < TIMEOUT ){
 				//SPIN
 			}
-			
+
 			int fingersIndex = numFingers-1;
 			hasBegun[fingersIndex]=false;
-			
+
 			for (int i = 0; i<3; i++){
 				if (hasBegun[2-i]){
 					fingersDown = 2-i+1;
 					break;
 				}
-				
+
 				fingersDown=0;
 			}
-			
+
 		}
 	}  	
     	
@@ -116,38 +118,43 @@ public class MultiTouchDetector implements GestureDetector.OnGestureListener {
 		private long startTime;
 		private int numFingers;
 		private long timeRunning=0;
-		
+
 		public TapThread(int numFingers){
 			this.numFingers=numFingers;
 			startTime = Calendar.getInstance().getTimeInMillis();
 			notScrolling=true;
 		}
-		
+
 		public void setNumFingers(int newNumFingers){
 			this.numFingers=newNumFingers;
 		}
-		
+
 		public int getNumFingers(){
 			return numFingers;
 		}
-		
-		
+
+
 		@Override
 		 synchronized public void run(){
 			//WHILE THERE ARE FINGERS AND WE HAVEN'T TIMED OUT
-			while (hasFingersDown() && Calendar.getInstance().getTimeInMillis()-startTime < this.TIMEOUT ){
-				timeRunning =Calendar.getInstance().getTimeInMillis()-startTime; //SPIN
+			while ( Calendar.getInstance().getTimeInMillis()-startTime < this.TIMEOUT){
+				if (!hasFingersDown()){
+					Log.i("debugging", "");
+					break;
+				}
+				
 			}
+			Log.i("debugging", " tap done at : " + Calendar.getInstance().getTimeInMillis());
 			//IF THE FINGERS ARE LIFTED BEFORE TIMEOUT, TAP 
-			if (!hasFingersDown()){
+		/**	if (!hasFingersDown()){
 				long noFingersStart = Calendar.getInstance().getTimeInMillis();
-				while (Calendar.getInstance().getTimeInMillis()- noFingersStart < NOFINGERTIMEOUT){
+				while (Calendar.getInstance().getTimeInMillis()- noFingersStart < 2){
 					if (hasFingersDown()){
 						return;
 						}
-						
+
 					}	
-				}
+				}*/
 				//MAKE SURE FINGERS STAY OFF FOR A FEW MILIS
 				if (!hasFingersDown()){
 					if (notScrolling){
@@ -155,11 +162,11 @@ public class MultiTouchDetector implements GestureDetector.OnGestureListener {
 					}
 					scrollIndex = 0;
 				}
-			
-			
-		
-		
-		
+
+
+
+
+
 	}  	
     }
 
@@ -173,31 +180,40 @@ public class MultiTouchDetector implements GestureDetector.OnGestureListener {
 	@Override
 	public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
 			float velocityY) {
-		// TODO Auto-generated method stub
+		float FLINGTHRESHOLD= 1000;
+		if (Math.abs(velocityX)>FLINGTHRESHOLD){
+			listener.onFling(e1, e2, velocityX, velocityY, fingersDown);
+		}
+		
 		return false;
 	}
 
 	@Override
 	public void onLongPress(MotionEvent e) {
 		// TODO Auto-generated method stub
-		
+
 	}
-	
+
+	boolean lastDistancePositive=false;
 	int scrollIndex = 0;
 	@Override
 	public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX,
 			float distanceY) {
 		final float THRESHOLD = 15;
 		final int TIMESTOSCROLL=5;
-		
+		boolean currentDistancePositive = distanceX>0;
 		if (Math.abs(distanceX)>THRESHOLD){
 			scrollIndex++;
 			if (scrollIndex>TIMESTOSCROLL){
+				if (lastDistancePositive==currentDistancePositive){
 				notScrolling=false;
+				Log.i("scroll", "distanceX is: "+ distanceX);
 				listener.onScroll(e1, e2, distanceX, distanceY, fingersDown);
+				}
+				lastDistancePositive=currentDistancePositive;
 			}
 		}
-		
+
 		// TODO Auto-generated method stub
 		return false;
 	}
@@ -205,7 +221,7 @@ public class MultiTouchDetector implements GestureDetector.OnGestureListener {
 	@Override
 	public void onShowPress(MotionEvent e) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -214,13 +230,4 @@ public class MultiTouchDetector implements GestureDetector.OnGestureListener {
 		return false;
 	}
 }
-
-
-    
-    
-	
-	
-	
-	
-	
 
