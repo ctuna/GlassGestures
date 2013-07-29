@@ -53,6 +53,7 @@ private final int VARIABLE_LEVEL = 2;
 int paddingAmount = 30;
 int selectedColor;
 int unSelectedColor;
+int fadedColor;
 int textSize = 35;
 LinearLayout currentVariableLayout;
 int flingRight = 0;
@@ -101,6 +102,7 @@ public enum State {
 		gestureDetector = new GestureDetector(this, this);
 		multiTouchDetector = new MultiTouchDetector(this);
 		selectedColor = getResources().getColor(color.holo_blue_dark);
+		fadedColor = getResources().getColor(R.color.white_transparent);
 		
 	}
 
@@ -306,6 +308,7 @@ public enum State {
 		    	 TextView nameOfObject;
 		    	selectedColor = getResources().getColor(color.holo_blue_dark);
 		    	unSelectedColor = getResources().getColor(color.secondary_text_dark);
+		    	//fadedColor = getResources().getColor(color.darker_gray);
 				Log.i("myGesture", "level is : " + level);
 				String varName="";
 				if (room.size()>0){
@@ -344,11 +347,12 @@ public enum State {
 						break;
 					case (OBJECT_LEVEL):
 						setContentView(R.layout.object_activity);
-						nameOfObject = (TextView) findViewById(R.id.name_of_object);
-						nameOfObject.setText(currentObject.getName());
+						
 						holder = (LinearLayout) findViewById(R.id.list_holder);
 						holder.removeAllViews();
-						
+						nameOfObject = (TextView) findViewById(R.id.name_of_object);
+						nameOfObject.setText(currentObject.getName());
+						nameOfObject.setTextColor(fadedColor);
 						views.clear();
 						//POPULATE DEVICES
 						for (Variable v : currentObject.getVariables()){

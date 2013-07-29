@@ -5,4 +5,5 @@
      <color name="tangerine">#F0684D</color>
      <color name="tangerine_light">#F7A18F</color>
      <color name="background">#000000</color>
+      <color name="white_transparent">#64FFFFFF</color>
 </resources>
