@@ -39,7 +39,7 @@ public boolean connectingToLaptop = false;
 public boolean twoNavigates = true;
 int fingersToNavigate;
 int fingersToScroll;
-
+int fingersToToggle;
 
 //LAYOUT STUFF
 TextView nameOfObject;
@@ -117,10 +117,12 @@ public enum State {
 		if (twoNavigates){
 			fingersToNavigate=2;
 			fingersToScroll=1;
+			fingersToToggle = 1;
 		}
 		else {
 			fingersToScroll=2;
 			fingersToNavigate=1;
+			fingersToToggle=1;
 		}
 	}
 	@Override
@@ -767,7 +769,9 @@ public enum State {
 
 	@Override
 	public void onScrollEnded(int numFingers) {
-		Log.i("debugging", "scroll ended with 1 finger");
+		if (numFingers == fingersToToggle){
+			updateValue();
+		}
 		// TODO Auto-generated method stub
 		
 	}

@@ -149,18 +149,18 @@ public class MultiTouchDetector implements GestureDetector.OnGestureListener {
 				
 			}
 			Log.i("debugging", " tap done at : " + Calendar.getInstance().getTimeInMillis());
-			//IF THE FINGERS ARE LIFTED BEFORE TIMEOUT, TAP 
+	
 			if (!hasFingersDown()){
+
+				//MAKE SURE FINGERS STAY OFF FOR A FEW MILIS
 				long noFingersStart = Calendar.getInstance().getTimeInMillis();
 				while (Calendar.getInstance().getTimeInMillis()- noFingersStart < 20){
 					if (hasFingersDown()){
-						Log.i("debugging", "false alarm");
 						return;
 						}
 
 					}	
 				
-				//MAKE SURE FINGERS STAY OFF FOR A FEW MILIS
 				if (!hasFingersDown()){
 					if (notScrolling){
 						listener.onTapUp(numFingers);
