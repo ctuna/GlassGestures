@@ -123,6 +123,7 @@ public enum State {
 			fingersToNavigate=1;
 		}
 	}
+	
 	@Override
 	protected void onDestroy(){
 		connectionManager.destroy();
@@ -162,7 +163,7 @@ public enum State {
 			currentObject=laptop;
 			currentVariable = laptop.getVariables().get(varIndex);
 		}
-		}
+	}
 	
 	public void receive(String message){
 		Log.i("debugging", "received string:  " + message + " with length " + message.length());
@@ -192,7 +193,7 @@ public enum State {
 				
 				resetLayout();
 			//PARSE IDS
-			}
+		}
 			
 		
 		else{
@@ -208,9 +209,11 @@ public enum State {
 			//PARSE NORMAL MESSAGE
 		}
 	}
+	
 	public void onValueChanged(){
 		
 	}
+	
 	public void addObjectToRoom(int key){
 		if (objects.containsKey(key)){
 			room.add(objects.get(key));
