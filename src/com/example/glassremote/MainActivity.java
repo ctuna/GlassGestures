@@ -622,11 +622,12 @@ public enum State {
 		Log.i("debugging", "single tap up");
 		switch (level){
 			case (ROOM_LEVEL):
-				//an object is selected, 
+				
 				
 				
 				level=OBJECT_LEVEL;
 				
+				//an object is selected, query initial status of each variables 
 				for (Variable v: currentObject.getVariables()){
 					connectionManager.write(connectionManager.formatMessage(currentObject, v, 'R'));
 					
