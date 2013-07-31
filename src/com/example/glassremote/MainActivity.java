@@ -125,6 +125,7 @@ public enum State {
 			fingersToToggle=1;
 		}
 	}
+	
 	@Override
 	protected void onDestroy(){
 		connectionManager.destroy();
@@ -164,7 +165,7 @@ public enum State {
 			currentObject=laptop;
 			currentVariable = laptop.getVariables().get(varIndex);
 		}
-		}
+	}
 	
 	public void receive(String message){
 		Log.i("debugging", "received string:  " + message + " with length " + message.length());
@@ -172,47 +173,70 @@ public enum State {
 
 			
 			String currentSubstring= message;
-				while (currentSubstring.length()>=2){
-					//CUT OFF ":" 
-					if (currentSubstring.startsWith(":")){
-						currentSubstring.substring(1);
-					}
-					try {
-						addObjectToRoom(Integer.parseInt(currentSubstring.substring(0, 2)));
-						level = ROOM_LEVEL;
-					}
-					catch (NumberFormatException e){
-						e.printStackTrace();
-						
-					}
-					currentSubstring=currentSubstring.substring(2);
-					
-					Log.i("debugging", "current"+ "current substring is: " + currentSubstring + " with length "+ currentSubstring.length());
-					
+			
+			while (currentSubstring.length()>=2){	//multiple clients responded
+				//CUT OFF ":" 
+				if (currentSubstring.startsWith(":")){
+					currentSubstring.substring(1);
+				}
+				try {
+					addObjectToRoom(Integer.parseInt(currentSubstring.substring(0, 2)));
+					level = ROOM_LEVEL;
+				}
+				catch (NumberFormatException e){
+					e.printStackTrace();
 					
 				}
+				currentSubstring=currentSubstring.substring(2);
 				
-				resetLayout();
-			//PARSE IDS
+				Log.i("debugging", "current"+ "current substring is: " + currentSubstring + " with length "+ currentSubstring.length());
+				
+				
 			}
 			
+			
+			//PARSE IDS
+		}
+			
 		
-		else{
+		else{	//Object level -> returns of READ msg
 			try {
 			String id = message.substring(0, 2);
 			String fn = message.substring(2, 3);
 			String variable = message.substring(3, 6);
 			String value = message.substring(6, 9);
+			
+			for (Variable currentVar : currentObject.getVariables()){
+				if (currentVar.getAbbreviation().equals(variable)){
+					//JUST BOOLEAN
+					boolean on = !value.equals("OFF");
+					if (currentVar.hasBoolean() && !currentVar.hasContinuous()){
+						currentVar.setBoolean(on);
+					}
+					if (currentVar.hasBoolean() && currentVar.hasContinuous()){
+						if (!on){
+							currentVar.setBoolean(!on);
+						}
+						else {
+							currentVar.setContinuous(Integer.parseInt(value));
+							}
+					}
+					//BOOL/CONTINUOUS
+				}
+			}
 			}
 			catch (StringIndexOutOfBoundsException e) {
 				Log.i("debugging", "badly formatted message: " + message);
 			}
 			//PARSE NORMAL MESSAGE
 		}
+		resetLayout();
 	}
+	
 	public void onValueChanged(){
 		
 	}
+	
 	public void addObjectToRoom(int key){
 		if (objects.containsKey(key)){
 			room.add(objects.get(key));
@@ -227,6 +251,8 @@ public enum State {
 		HorizontalScrollView scroller = (HorizontalScrollView)findViewById (R.id.scroller);
 		switch (level){
 		case (ROOM_LEVEL):
+			//switch to a different client candidate
+			
 			scroller = (HorizontalScrollView)findViewById (R.id.scroller);
 			length = room.size();
 			if (forward && objectIndex != length - 1) 
@@ -248,9 +274,12 @@ public enum State {
 			
 		
 			currentObject=room.get(objectIndex);
+			//for objects in room, if current object blink fast else blink slow
 			varIndex=0;
 			holder = (LinearLayout) findViewById(R.id.list_holder);
 			for (int i = 0 ; i < room.size(); i ++){
+				//TODO: send corresponding to clients for blinking speed
+				
 				TextView currentText = (TextView) holder.getChildAt(i);
 				if (currentText.getText().equals(currentObject.getName())){
 					currentText.setTextColor(selectedColor);
@@ -348,6 +377,7 @@ public enum State {
 						
 						break;
 					case (OBJECT_LEVEL):
+						//TODO: SEND READ FOR CURRENT OBJECT
 						setContentView(R.layout.object_activity);
 						
 						holder = (LinearLayout) findViewById(R.id.list_holder);
@@ -423,16 +453,23 @@ public enum State {
 						
 						if (currentValue.equals("off")){
 							valueOfVariable.setProgress(0);
+							connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable,'C', currentValue));
+							   
 							
 						}
 						else if (currentValue.equals("on")){
 							//ON/OFF CASE
 							valueOfVariable.setProgress(100);
+							connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
+							   
 						}
-						else valueOfVariable.setProgress(Integer.parseInt(currentValue));
+						else {
+							valueOfVariable.setProgress(Integer.parseInt(currentValue));
+							connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'S', currentValue));
+						      
+						}
 					
-						connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, currentValue));
-	        
+						  
 						break;
 				
 				
@@ -463,14 +500,22 @@ public enum State {
 			String currentValue = currentVariable.getCurrentValue();
 			if (currentValue.equals("off")){
 				valueOfVariable.setProgress(0);
+				connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
+				
 			}
 			else if (currentValue.equals("on")){
 			//ON/OFF CASE
 				valueOfVariable.setProgress(100);
+				connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
+				
 			}
-			else valueOfVariable.setProgress(Integer.parseInt(currentValue));
+			else{
+				valueOfVariable.setProgress(Integer.parseInt(currentValue));
+				connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'S', currentValue));
+				
+			}
+				
 			
-			connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, currentValue));
 			Log.i("bt_message", "value: " + currentValue);
 			
 			}
@@ -493,10 +538,14 @@ public enum State {
 			String currentValue = currentVariable.getCurrentValue();
 			if (currentValue.equals("off")){
 				valueOfVariable.setProgress(0);
+				connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
+				
 			}
 			else if (currentValue.equals("on")){
 			//ON/OFF CASE
 				valueOfVariable.setProgress(100);
+				connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
+				
 			}
 			else {
 				valueOfVariable.setProgress(Integer.parseInt(currentValue));
@@ -505,8 +554,9 @@ public enum State {
 					//don't send if hasn't changed enough 
 					return;
 				}
+				connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'S', currentValue));
+				
 			}
-			connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, currentValue));
 			Log.i("bt_message", "send out value: " + currentValue);
 			}
 		
@@ -525,9 +575,9 @@ public enum State {
 		}
 		if (level == OBJECT_LEVEL || level == VARIABLE_LEVEL)
 			if (increase){
-				connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, "INC"));
+				connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', "INC"));
 			}
-			else connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, "DEC"));
+			else connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', "DEC"));
 			
 			
 			}
@@ -586,15 +636,23 @@ public enum State {
 		//BEHAVIOR FOR TAP 
 		if (level==LIMBO){
 			connectionManager.initialMessage();
+			
 		
 		}
 		Log.i("debugging", "sent init message");
 		Log.i("debugging", "single tap up");
 		switch (level){
 			case (ROOM_LEVEL):
+				//an object is selected, 
 				
 				
 				level=OBJECT_LEVEL;
+				
+				for (Variable v: currentObject.getVariables()){
+					connectionManager.write(connectionManager.formatMessage(currentObject, v, 'R'));
+					
+					
+				}
 				break;
 			case (OBJECT_LEVEL):
 				//TODO: SELECT VARIABLE

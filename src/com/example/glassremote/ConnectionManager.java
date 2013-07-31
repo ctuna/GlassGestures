@@ -469,42 +469,53 @@ public void initialMessage(){
         write(REQUEST_OBJECTS);
         
 }
-public String formatMessage(ControlledObject object, Variable variable, String currentValue){
+public String formatMessage(ControlledObject object, Variable variable, char function, String... currentValue){
 	String id = "" + object.getId();
 	String var = variable.getAbbreviation();
-	String method;
-	String val;
+	
+	String val="XXX";
 	if (id.length()==1){
 		id = "0"+ id;
 	}
 
-	if (currentValue.equals("off")){
-		method = "C";
-		val = "OFF";
-	}
-	else if (currentValue.equals("on")){
-		method = "C";
-		val = " ON";
-	}
-	else {
-		method = "S";
-		val = currentValue;
-		if (currentValue.length()==1){
-			val = "00"+currentValue;
+	
+	if (function != 'R'){
+		if (currentValue.equals("off")){
+			function = 'C';
+			val = "OFF";
 		}
-		if (currentValue.length()==2){
-			val = "0"+currentValue;
-		}
+
 		if (variable.getName().equals("video")) {
-			method = "C";
-			if (!currentValue.equals("INC") && !currentValue.equals("DEC") ){
-				val = " ON";
-			}
+			
+				
+				if (!currentValue.equals("INC") && !currentValue.equals("DEC") ){
+					val = " ON";
+				}
+			
 		}
 		
 		
+
+		else if (currentValue.equals("on")){
+			function = 'C';
+			val = " ON";
+		}	
+		else {
+			function = 'S';
+			val = currentValue[0];
+			if (currentValue[0].length()==1){
+				val = "00"+currentValue;
+			}
+			if (currentValue[0].length()==2){
+				val = "0"+currentValue;
+			}
+		
 	}
-	return id + method+ var  + val+"\n";
+	
+	
+
+	}
+	return id + function + var  + val+"\n";
 	
 }
 }
