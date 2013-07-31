@@ -33,7 +33,7 @@ GestureDetector.OnDoubleTapListener doubleGestureDetector;
 boolean double_tap_down = false;
 boolean double_tap_pointer_down=false;
 
-public boolean connectingToLaptop = false;
+public boolean connectingToLaptop = true;
 
 //TWO NAVIGATES = TRUE means switching with 2 fingers, scrolling with 1 
 public boolean twoNavigates = true;
@@ -151,7 +151,7 @@ public enum State {
 		ControlledObject lamp = new ControlledObject("lamp", 2,
 				new Variable("brightness", true, false, 0, 100, this));
 		ControlledObject laptop = new ControlledObject("laptop", 1,
-				new Variable("brightness", true, true, 0, 100, this),
+				new Variable("video", true, true, 0, 100, this),
 				new Variable("volume", true, true,0, 100, this));
 		objects = new HashMap<Integer, ControlledObject>();
 		objects.put(laptop.getId(), laptop);
@@ -564,6 +564,27 @@ public enum State {
 		
 		}
 	
+	public void updateValue(boolean increase){
+		ProgressBar valueOfVariable = null;
+		int THRESHOLD = 3;
+		if (level == VARIABLE_LEVEL){
+			valueOfVariable = (ProgressBar) findViewById(R.id.variable_progress);
+		}
+		if (level == OBJECT_LEVEL){
+			valueOfVariable = (ProgressBar)currentVariableLayout.getChildAt(1);
+		}
+		if (level == OBJECT_LEVEL || level == VARIABLE_LEVEL)
+			if (increase){
+				connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', "INC"));
+			}
+			else connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', "DEC"));
+			
+			
+			}
+		
+		//FORMAT MESSAGE
+		
+		
 	
 	
 	
@@ -637,8 +658,10 @@ public enum State {
 			case (OBJECT_LEVEL):
 				//TODO: SELECT VARIABLE
 				if (currentVariable.hasBoolean())currentVariable.setBoolean(!currentVariable.getBoolean());
+				updateValue();
+				return false;
 				//level=VARIABLE_LEVEL;
-				break;
+				
 			case (VARIABLE_LEVEL):
 				
 				break;
@@ -693,22 +716,32 @@ public enum State {
 				Log.i("var", "turning it down");
 				//TODO: TURN IT DOWN
 				if (currentVariable.hasContinuous()){
-					newVal = (int) (currentVariable.getPercentage()-(distanceX/6));
-					oldVal = currentVariable.getPercentage();
-					currentVariable.setContinuous(newVal);
-					
-					updateValue(oldVal);
+					if (currentVariable.getName().equals("video")){
+						updateValue(false);
+					}
+					else {
+						newVal = (int) (currentVariable.getPercentage()-(distanceX/6));
+						oldVal = currentVariable.getPercentage();
+						currentVariable.setContinuous(newVal);
+						updateValue(oldVal);
+					}
+				
 					
 					}
 					}
 			else{
 				//TODO: TURN IT UP
-				if (currentVariable.hasContinuous()){    
-					Log.i("var", "turning it up");
-					oldVal = currentVariable.getPercentage();
-					newVal = (int)(currentVariable.getPercentage()-(distanceX/6));
-					currentVariable.setContinuous(newVal);
-					updateValue(oldVal);
+				if (currentVariable.hasContinuous()){ 
+					if (currentVariable.getName().equals("video")){
+						updateValue(true);
+					}
+					else {
+						Log.i("var", "turning it up");
+						oldVal = currentVariable.getPercentage();
+						newVal = (int)(currentVariable.getPercentage()-(distanceX/6));
+						currentVariable.setContinuous(newVal);
+						updateValue(oldVal);
+					}
 					}
 					}
 		}
@@ -828,7 +861,8 @@ public enum State {
 
 	@Override
 	public void onScrollEnded(int numFingers) {
-		if (numFingers == fingersToToggle){
+		if (numFingers == fingersToToggle && !currentVariable.getName().equals("video")){
+			Log.i("debugging", "SCROLL ENDED");
 			updateValue();
 		}
 		// TODO Auto-generated method stub

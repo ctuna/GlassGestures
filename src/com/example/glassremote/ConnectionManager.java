@@ -473,19 +473,29 @@ public String formatMessage(ControlledObject object, Variable variable, char fun
 	String id = "" + object.getId();
 	String var = variable.getAbbreviation();
 	
-	String val;
+	String val="XXX";
 	if (id.length()==1){
 		id = "0"+ id;
 	}
 
-	if (function =='R'){
-		val = "XXX";
-	}
-	else {
+	
+	if (function != 'R'){
 		if (currentValue.equals("off")){
 			function = 'C';
 			val = "OFF";
 		}
+
+		if (variable.getName().equals("video")) {
+			
+				
+				if (!currentValue.equals("INC") && !currentValue.equals("DEC") ){
+					val = " ON";
+				}
+			
+		}
+		
+		
+
 		else if (currentValue.equals("on")){
 			function = 'C';
 			val = " ON";
@@ -503,6 +513,7 @@ public String formatMessage(ControlledObject object, Variable variable, char fun
 	}
 	
 	
+
 	}
 	return id + function + var  + val+"\n";
 	
