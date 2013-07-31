@@ -495,6 +495,14 @@ public String formatMessage(ControlledObject object, Variable variable, String c
 		if (currentValue.length()==2){
 			val = "0"+currentValue;
 		}
+		if (variable.getName().equals("video")) {
+			method = "C";
+			if (!currentValue.equals("INC") && !currentValue.equals("DEC") ){
+				val = " ON";
+			}
+		}
+		
+		
 	}
 	return id + method+ var  + val+"\n";
 	

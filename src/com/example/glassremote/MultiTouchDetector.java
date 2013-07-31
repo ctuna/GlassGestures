@@ -167,7 +167,10 @@ public class MultiTouchDetector implements GestureDetector.OnGestureListener {
 						scrollIndex = 0;
 					}
 				
-					else listener.onScrollEnded(numFingers);
+					else 
+						{
+						listener.onScrollEnded(numFingers);
+						}
 					
 				}
 			

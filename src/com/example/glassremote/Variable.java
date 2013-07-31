@@ -17,7 +17,7 @@ public class Variable{
 		String currentValue;
 		
 		
-		public Variable(String name, boolean isBoolean, boolean isContinuous, int min, int max, MainActivity activity){
+		public Variable(String name, boolean isBoolean, boolean isContinuous,  int min, int max, MainActivity activity){
 			this.name=name;
 			this.abbreviation= name.substring(0, 3).toUpperCase();
 			this.isBoolean=isBoolean;
@@ -130,6 +130,7 @@ public class Variable{
 			}
 			
 		}
+		
 		
 		public int getPercentage(){
 			if (isContinuous){
