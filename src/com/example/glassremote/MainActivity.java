@@ -39,7 +39,7 @@ public boolean connectingToLaptop = false;
 public boolean twoNavigates = true;
 int fingersToNavigate;
 int fingersToScroll;
-
+int fingersToToggle;
 
 //LAYOUT STUFF
 TextView nameOfObject;
@@ -117,10 +117,12 @@ public enum State {
 		if (twoNavigates){
 			fingersToNavigate=2;
 			fingersToScroll=1;
+			fingersToToggle = 1;
 		}
 		else {
 			fingersToScroll=2;
 			fingersToNavigate=1;
+			fingersToToggle=1;
 		}
 	}
 	
@@ -433,7 +435,7 @@ public enum State {
 						else valueOfVariable.setProgress(Integer.parseInt(currentValue));
 					
 						connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, currentValue));
-						
+	        
 						break;
 				
 				
@@ -472,7 +474,7 @@ public enum State {
 			else valueOfVariable.setProgress(Integer.parseInt(currentValue));
 			
 			connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, currentValue));
-			
+			Log.i("bt_message", "value: " + currentValue);
 			
 			}
 		
@@ -482,7 +484,7 @@ public enum State {
 	
 	public void updateValue(int oldVal){
 		ProgressBar valueOfVariable = null;
-		int THRESHOLD = 5;
+		int THRESHOLD = 3;
 		if (level == VARIABLE_LEVEL){
 			valueOfVariable = (ProgressBar) findViewById(R.id.variable_progress);
 		}
@@ -508,7 +510,7 @@ public enum State {
 				}
 			}
 			connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, currentValue));
-			
+			Log.i("bt_message", "send out value: " + currentValue);
 			}
 		
 		//FORMAT MESSAGE
@@ -569,6 +571,7 @@ public enum State {
 		
 		}
 		Log.i("debugging", "sent init message");
+		Log.i("debugging", "single tap up");
 		switch (level){
 			case (ROOM_LEVEL):
 				
@@ -593,8 +596,8 @@ public enum State {
 
 	@Override
 	public void onTapUp(int numFingers) {
-		
-		if (numFingers == 2){
+		/**
+		if (numFingers == 1){
 			Log.i("myGesture", "tap registered at: "+ Calendar.getInstance().getTimeInMillis());
 			switch (level){
 			
@@ -616,7 +619,7 @@ public enum State {
 	
 	
 		
-		}
+		}*/
 		}
 	
 	
@@ -765,6 +768,15 @@ public enum State {
 	    }
 	    resetLayout();
 	    
+	}
+
+	@Override
+	public void onScrollEnded(int numFingers) {
+		if (numFingers == fingersToToggle){
+			updateValue();
+		}
+		// TODO Auto-generated method stub
+		
 	}
 	
 	

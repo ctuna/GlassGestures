@@ -8,6 +8,7 @@ interface MultiTouchListener {
 	
 	public void onTapUp(int numFingers);
 	
+	public void onScrollEnded(int numFingers);
 	
 	public void onScroll(MotionEvent e1, MotionEvent e2, float distanceX,
 			float distanceY, int numFingers);
