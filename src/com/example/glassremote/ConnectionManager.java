@@ -506,10 +506,10 @@ public String formatMessage(ControlledObject object, Variable variable, char fun
 			val = currentValue[0];
 			Log.i("Debugging", "in write value is " + val);
 			if (currentValue[0].length()==1){
-				val = "00"+currentValue;
+				val = "00"+currentValue[0];
 			}
 			if (currentValue[0].length()==2){
-				val = "0"+currentValue;
+				val = "0"+currentValue[0];
 			}
 		
 	}
