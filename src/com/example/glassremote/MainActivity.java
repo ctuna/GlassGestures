@@ -33,7 +33,7 @@ GestureDetector.OnDoubleTapListener doubleGestureDetector;
 boolean double_tap_down = false;
 boolean double_tap_pointer_down=false;
 
-public boolean connectingToLaptop = false;
+public boolean connectingToLaptop = true;
 
 //TWO NAVIGATES = TRUE means switching with 2 fingers, scrolling with 1 
 public boolean twoNavigates = true;
