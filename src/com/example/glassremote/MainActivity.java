@@ -169,18 +169,28 @@ public enum State {
 		}
 	}
 	
+	public boolean isNum(char c){
+		return (c == 0 || c == 1 || c ==2 ||
+				c == 3 || c == 4 || c ==5 ||
+				c == 6 || c == 7 || c ==8 ||
+				c == 9);
+	}
+	
 	public void receive(String message){
 		Log.i("debugging", "received string:  " + message + " with length " + message.length());
 		if (level == LIMBO){
 
 			
 			String currentSubstring= message;
-			
+			String nextSubstring="";
 			while (currentSubstring.length()>=2){	//multiple clients responded
-				//CUT OFF ":" 
-				if (currentSubstring.startsWith(":")){
-					currentSubstring.substring(1);
+				if (currentSubstring.contains(":")){
+					currentSubstring = currentSubstring.split(":")[0];
+					nextSubstring = currentSubstring.split(":")[1];
 				}
+				while (currentSubstring.length()>0)
+					if (!isNum(currentSubstring.charAt(0))) currentSubstring = currentSubstring.substring(1);
+				
 				try {
 					addObjectToRoom(Integer.parseInt(currentSubstring.substring(0, 2)));
 					level = ROOM_LEVEL;
@@ -189,7 +199,7 @@ public enum State {
 					e.printStackTrace();
 					
 				}
-				currentSubstring=currentSubstring.substring(2);
+				currentSubstring=nextSubstring;
 				
 				Log.i("debugging", "current"+ "current substring is: " + currentSubstring + " with length "+ currentSubstring.length());
 				
