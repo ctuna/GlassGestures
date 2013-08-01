@@ -480,34 +480,36 @@ public String formatMessage(ControlledObject object, Variable variable, char fun
 
 	
 	if (function != 'R'){
-		if (currentValue.equals("off")){
-			function = 'C';
-			val = "OFF";
-		}
+		
 
 		if (variable.getName().equals("video")) {
 			
 				
-				if (!currentValue.equals("INC") && !currentValue.equals("DEC") ){
+				if (!currentValue[0].equals("INC") && !currentValue[0].equals("DEC") ){
 					val = " ON";
 				}
 			
 		}
 		
-		
+		if (currentValue[0].equals("off")){
+			
+			function = 'C';
+			val = "OFF";
+		}
 
-		else if (currentValue.equals("on")){
+		else if (currentValue[0].equals("on")){
 			function = 'C';
 			val = " ON";
 		}	
 		else {
 			function = 'S';
 			val = currentValue[0];
+			Log.i("Debugging", "in write value is " + val);
 			if (currentValue[0].length()==1){
-				val = "00"+currentValue;
+				val = "00"+currentValue[0];
 			}
 			if (currentValue[0].length()==2){
-				val = "0"+currentValue;
+				val = "0"+currentValue[0];
 			}
 		
 	}
