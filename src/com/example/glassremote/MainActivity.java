@@ -863,6 +863,15 @@ public enum State {
 	    	return;
 	    case (OBJECT_LEVEL):
 	    	level = ROOM_LEVEL;
+	    	//send led off msg to previously connected client
+		    Variable var_led = null;
+			for (Variable v: currentObject.getVariables()){
+				if (v.getName().equals("led")){
+					var_led = v;
+				}
+			}
+			connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'S', "off"));
+	    
 	    	break;
 	    case (VARIABLE_LEVEL):
 	    	level=OBJECT_LEVEL;
