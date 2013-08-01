@@ -670,9 +670,9 @@ public enum State {
 					}
 					if (var_led!=null){
 						if(client.getName().equals(currentObject.getName())){
-							connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'S', "on"));	
+							connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'C', "on"));	
 						} else {
-							connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'S', "off"));
+							connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'C', "off"));
 					}}
 				}
 				break;
@@ -874,7 +874,7 @@ public enum State {
 					var_led = v;
 				}
 			}
-			connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'S', "off"));
+			connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'C', "off"));
 	    
 	    	break;
 	    case (VARIABLE_LEVEL):
