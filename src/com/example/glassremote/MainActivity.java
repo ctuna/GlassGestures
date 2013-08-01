@@ -150,9 +150,11 @@ public enum State {
 
 		ControlledObject lamp = new ControlledObject("lamp", 2,
 				new Variable("brightness", true, false, 0, 100, this));
+				new Variable("led", true, true, 0, 100, this);
 		ControlledObject laptop = new ControlledObject("laptop", 1,
 				new Variable("video", true, true, 0, 100, this),
 				new Variable("volume", true, true,0, 100, this));
+				new Variable("led", true, true, 0, 100, this);
 		objects = new HashMap<Integer, ControlledObject>();
 		objects.put(laptop.getId(), laptop);
 		objects.put(lamp.getId(), lamp);
@@ -653,6 +655,21 @@ public enum State {
 					connectionManager.write(connectionManager.formatMessage(currentObject, v, 'R'));
 					
 					
+				}
+				//send out corresponding led commands
+				//selected client turn led on, others off
+				for (ControlledObject client: room) {
+					Variable var_led = null;
+					for (Variable v: client.getVariables()){
+						if (v.getName().equals("led")){
+							var_led = v;
+						}
+					}
+					if(client.getName().equals(currentObject.getName())){
+						connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'S', "on"));	
+					} else {
+						connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'S', "off"));
+					}
 				}
 				break;
 			case (OBJECT_LEVEL):
