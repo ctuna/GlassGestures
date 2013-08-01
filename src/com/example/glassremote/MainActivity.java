@@ -154,8 +154,8 @@ public enum State {
 				new Variable("led", true, true, 0, 100, this));
 		ControlledObject laptop = new ControlledObject("laptop", 1,
 				new Variable("video", true, true, 0, 100, this),
-				new Variable("volume", true, true,0, 100, this));
-				new Variable("led", true, true, 0, 100, this);
+				new Variable("volume", true, true,0, 100, this),
+				new Variable("led", true, true, 0, 100, this));
 		objects = new HashMap<Integer, ControlledObject>();
 		objects.put(laptop.getId(), laptop);
 		objects.put(lamp.getId(), lamp);
