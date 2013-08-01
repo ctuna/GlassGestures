@@ -156,11 +156,11 @@ public enum State {
 
 		ControlledObject lamp = new ControlledObject("lamp", 2,
 				new Variable("brightness", true, false, 0, 100, this),
-				new Variable("led", true, true, 0, 100, this));
+				new Variable("selection", true, true, 0, 100, this));
 		ControlledObject laptop = new ControlledObject("laptop", 1,
 				new Variable("video", true, true, 0, 100, this),
 				new Variable("volume", true, true,0, 100, this),
-				new Variable("led", true, true, 0, 100, this));
+				new Variable("selection", true, true, 0, 100, this));
 		objects = new HashMap<Integer, ControlledObject>();
 		objects.put(laptop.getId(), laptop);
 		objects.put(lamp.getId(), lamp);
@@ -314,15 +314,13 @@ public enum State {
 				}
 			}
 			
-			//update the led for selected client candidate
+			//update the led for hovered client candidate
 			//set the previously hovering one to blink slow
-			Variable var_led = getVariable(currentObject, "led"); 
-			connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'S', "20"));
 	    
 			currentObject=room.get(objectIndex);
 			//set the current hovering one to blink fast
-			var_led = getVariable(currentObject, "led"); 
-			connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'S', "80"));
+			Variable var_sel = getVariable(currentObject, "selection");
+			connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'S', "80"));
 	    
 			//for objects in room, if current object blink fast else blink slow
 			varIndex=0;
@@ -441,7 +439,7 @@ public enum State {
 						views.clear();
 						//POPULATE DEVICES
 						for (Variable v : currentObject.getVariables()){
-							if (!v.getName().equals("led")){
+							if (!v.getName().equals("selection")){
 							LinearLayout l = new LinearLayout(context);
 							l.setOrientation(LinearLayout.VERTICAL);
 							LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
@@ -725,15 +723,9 @@ public enum State {
 				}
 				//send out corresponding led commands
 				//selected client turn led on, others off
-				for (ControlledObject client: room) {
-					Variable var_led = getVariable(client, "led"); 
-					if (var_led!=null){
-						if(client.getName().equals(currentObject.getName())){
-							connectionManager.write(connectionManager.formatMessage(client, var_led, 'C', "on"));	
-						} else {
-							connectionManager.write(connectionManager.formatMessage(client, var_led, 'C', "off"));
-					}}
-				}
+				Variable var_sel = getVariable(currentObject, "selection");
+				connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', "on"));
+				
 				break;
 			case (OBJECT_LEVEL):
 				//TODO: SELECT VARIABLE
@@ -927,8 +919,8 @@ public enum State {
 	    case (OBJECT_LEVEL):
 	    	level = LIMBO;
 	    	//send led off msg to previously connected client
-	    	Variable var_led = getVariable(currentObject, "led"); 
-			connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'C', "off"));
+	    	Variable var_sel = getVariable(currentObject, "selection"); 
+			connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', "off"));
 	    
 	    	break;
 	    case (VARIABLE_LEVEL):
