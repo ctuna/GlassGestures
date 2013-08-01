@@ -274,8 +274,16 @@ public enum State {
 				}
 			}
 			
-		
+			//update the led for selected client candidate
+			//set the previously hovering one to blink slow
+			Variable var_led = getVariable(currentObject, "led"); 
+			connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'S', "20"));
+	    
 			currentObject=room.get(objectIndex);
+			//set the current hovering one to blink fast
+			var_led = getVariable(currentObject, "led"); 
+			connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'S', "80"));
+	    
 			//for objects in room, if current object blink fast else blink slow
 			varIndex=0;
 			holder = (LinearLayout) findViewById(R.id.list_holder);
