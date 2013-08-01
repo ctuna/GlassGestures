@@ -45,11 +45,16 @@ int fingersToToggle;
 TextView nameOfObject;
 
 TextView valueOfVariable;
-private int level = 3;
-private final int LIMBO = 3;
+
+//STATES
+
 private final int ROOM_LEVEL = 0;
 private final int OBJECT_LEVEL = 1;
 private final int VARIABLE_LEVEL = 2;
+private final int LIMBO = 3;
+private int level = LIMBO;
+
+
 int paddingAmount = 30;
 int selectedColor;
 int unSelectedColor;
