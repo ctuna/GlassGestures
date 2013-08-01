@@ -661,13 +661,7 @@ public enum State {
 				//send out corresponding led commands
 				//selected client turn led on, others off
 				for (ControlledObject client: room) {
-					Variable var_led = null;
-					for (Variable v: client.getVariables()){
-						Log.i("debugging", "in loop with variable: " + v.getName());
-						if (v.getName().equals("led")){
-							var_led = v;
-						}
-					}
+					Variable var_led = getVariable(client, "led"); 
 					if (var_led!=null){
 						if(client.getName().equals(currentObject.getName())){
 							connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'C', "on"));	
@@ -868,12 +862,7 @@ public enum State {
 	    case (OBJECT_LEVEL):
 	    	level = ROOM_LEVEL;
 	    	//send led off msg to previously connected client
-		    Variable var_led = null;
-			for (Variable v: currentObject.getVariables()){
-				if (v.getName().equals("led")){
-					var_led = v;
-				}
-			}
+	    	Variable var_led = getVariable(currentObject, "led"); 
 			connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'C', "off"));
 	    
 	    	break;
@@ -900,7 +889,15 @@ public enum State {
 	}
 	
 	
-	
+	public Variable getVariable(ControlledObject obj, String var_name){
+		 Variable var = null;
+			for (Variable v: obj.getVariables()){
+				if (v.getName().equals(var_name)){
+					return v;
+				}
+			}
+			return var;
+	}
 
 }
 
