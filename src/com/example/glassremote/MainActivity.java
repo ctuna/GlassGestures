@@ -33,7 +33,7 @@ GestureDetector.OnDoubleTapListener doubleGestureDetector;
 boolean double_tap_down = false;
 boolean double_tap_pointer_down=false;
 
-public boolean connectingToLaptop = true;
+public boolean connectingToLaptop = false;
 
 //TWO NAVIGATES = TRUE means switching with 2 fingers, scrolling with 1 
 public boolean twoNavigates = true;
@@ -149,8 +149,8 @@ public enum State {
 		//TODO: have objects send ID upon connection
 
 		ControlledObject lamp = new ControlledObject("lamp", 2,
-				new Variable("brightness", true, false, 0, 100, this));
-				new Variable("led", true, true, 0, 100, this);
+				new Variable("brightness", true, false, 0, 100, this),
+				new Variable("led", true, true, 0, 100, this));
 		ControlledObject laptop = new ControlledObject("laptop", 1,
 				new Variable("video", true, true, 0, 100, this),
 				new Variable("volume", true, true,0, 100, this));
@@ -390,6 +390,7 @@ public enum State {
 						views.clear();
 						//POPULATE DEVICES
 						for (Variable v : currentObject.getVariables()){
+							if (!v.getName().equals("led")){
 							LinearLayout l = new LinearLayout(context);
 							l.setOrientation(LinearLayout.VERTICAL);
 							LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
@@ -434,6 +435,7 @@ public enum State {
 							
 							views.add(l);
 							t=null;		
+							}
 						}
 						HorizontalScrollView scroller = (HorizontalScrollView)findViewById (R.id.scroller);
 					
@@ -661,15 +663,17 @@ public enum State {
 				for (ControlledObject client: room) {
 					Variable var_led = null;
 					for (Variable v: client.getVariables()){
+						Log.i("debugging", "in loop with variable: " + v.getName());
 						if (v.getName().equals("led")){
 							var_led = v;
 						}
 					}
-					if(client.getName().equals(currentObject.getName())){
-						connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'S', "on"));	
-					} else {
-						connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'S', "off"));
-					}
+					if (var_led!=null){
+						if(client.getName().equals(currentObject.getName())){
+							connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'S', "on"));	
+						} else {
+							connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'S', "off"));
+					}}
 				}
 				break;
 			case (OBJECT_LEVEL):
