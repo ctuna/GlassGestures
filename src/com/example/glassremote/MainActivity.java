@@ -33,7 +33,7 @@ GestureDetector.OnDoubleTapListener doubleGestureDetector;
 boolean double_tap_down = false;
 boolean double_tap_pointer_down=false;
 
-public boolean connectingToLaptop = true;
+public boolean connectingToLaptop = false;
 
 //TWO NAVIGATES = TRUE means switching with 2 fingers, scrolling with 1 
 public boolean twoNavigates = true;
@@ -103,7 +103,8 @@ public enum State {
 		multiTouchDetector = new MultiTouchDetector(this);
 		selectedColor = getResources().getColor(color.holo_blue_dark);
 		fadedColor = getResources().getColor(R.color.white_transparent);
-		
+		receive("  02:01");
+
 	}
 
 	@Override
@@ -169,29 +170,53 @@ public enum State {
 		}
 	}
 	
+	public boolean isNum(char c){
+		return (c == '0' || c == '1' || c =='2' ||
+				c == '3' || c == '4' || c =='5' ||
+				c == '6' || c == '7' || c =='8' ||
+				c == '9');
+	}
+	
 	public void receive(String message){
 		Log.i("debugging", "received string:  " + message + " with length " + message.length());
 		if (level == LIMBO){
 
-			
+			boolean hasNext=false;
 			String currentSubstring= message;
-			
+			String nextSubstring="";
+			String[] halves = new String[2];
 			while (currentSubstring.length()>=2){	//multiple clients responded
-				//CUT OFF ":" 
-				if (currentSubstring.startsWith(":")){
-					currentSubstring.substring(1);
+				if (currentSubstring.contains(":")){
+					halves = currentSubstring.split(":", 2);
+					currentSubstring = halves[0];
+					nextSubstring = halves[1];
+					
 				}
+				else{
+					nextSubstring="";
+				}
+				Log.i("string", "current substring is: "+ currentSubstring + " next is "+ nextSubstring);
+				while (currentSubstring.length()>0){
+					if (!isNum(currentSubstring.charAt(0))) {
+						Log.i("debugging", currentSubstring.charAt(0) + "is not a number");
+						currentSubstring = currentSubstring.substring(1);
+					}
+					else break;
+				}
+				
 				try {
-					addObjectToRoom(Integer.parseInt(currentSubstring.substring(0, 2)));
+					
+					addObjectToRoom(Integer.parseInt(currentSubstring));
 					level = ROOM_LEVEL;
 				}
 				catch (NumberFormatException e){
 					e.printStackTrace();
 					
 				}
-				currentSubstring=currentSubstring.substring(2);
 				
-				Log.i("debugging", "current"+ "current substring is: " + currentSubstring + " with length "+ currentSubstring.length());
+				currentSubstring=nextSubstring;
+				
+				Log.i("debugging",  "current substring is: " + currentSubstring + " with length "+ currentSubstring.length());
 				
 				
 			}
@@ -486,7 +511,8 @@ public enum State {
 				
 				
 				case (LIMBO):
-					
+					setContentView(R.layout.activity_main);
+					break;
 				}
 		     
 		     
@@ -868,7 +894,7 @@ public enum State {
 	    	super.onBackPressed();
 	    	return;
 	    case (OBJECT_LEVEL):
-	    	level = ROOM_LEVEL;
+	    	level = LIMBO;
 	    	//send led off msg to previously connected client
 	    	Variable var_led = getVariable(currentObject, "led"); 
 			connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'C', "off"));
