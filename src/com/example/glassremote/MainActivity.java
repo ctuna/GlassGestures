@@ -184,7 +184,7 @@ public enum State {
 	
 	public void receive(String message){
 		Log.i("debugging", "received string:  " + message + " with length " + message.length());
-		if (level == LIMBO){
+		if (level == LIMBO || level == ROOM_LEVEL){
 
 			boolean hasNext=false;
 			String currentSubstring= message;
@@ -278,8 +278,11 @@ public enum State {
 	
 	public void addObjectToRoom(int key){
 		if (objects.containsKey(key)){
-			room.add(objects.get(key));
-			Log.i("debugging", "added "+ objects.get(key).getName() + " to room");
+			//DON'T ADD THE SAME OBJECT TWICE
+			if (!room.contains(objects.get(key))){
+				room.add(objects.get(key));
+				Log.i("debugging", "added "+ objects.get(key).getName() + " to room");
+			}
 		}
 		else Log.i("debugging", "key " + key + " was invalid");	
 	}
@@ -376,6 +379,8 @@ public enum State {
 		//resetLayout();
 	}
 	
+
+	
 	ArrayList<LinearLayout> views = new ArrayList<LinearLayout>();
 	MainActivity context = this;
 	public void resetLayout(){
@@ -401,6 +406,7 @@ public enum State {
 				String currentName;
 				switch (level){
 					case (ROOM_LEVEL):
+						
 						setContentView(R.layout.room_activity);
 						holder = (LinearLayout) findViewById(R.id.list_holder);
 						holder.removeAllViews();
@@ -524,6 +530,9 @@ public enum State {
 				
 				case (LIMBO):
 					setContentView(R.layout.activity_main);
+				
+					//TODO: TURN LEDS OFF
+			
 					break;
 				}
 		     
@@ -680,18 +689,28 @@ public enum State {
 		// TODO Auto-generated method stub
 		
 	}
-
+	
+	public void refreshRoom(){
+		Log.i("debugging", "refreshing room");
+		room.clear();
+		connectionManager.initialMessage();
+	}
+	
 	@Override
 	public boolean onSingleTapUp(MotionEvent e) {
 		//BEHAVIOR FOR TAP 
-		if (level==LIMBO){
-			connectionManager.initialMessage();
-			
-		
-		}
+	
 		Log.i("debugging", "sent init message");
 		Log.i("debugging", "single tap up");
 		switch (level){
+			case (LIMBO):
+				
+				refreshRoom();
+				if (room.size()>0){
+					level = ROOM_LEVEL;
+				}
+				
+				break;
 			case (ROOM_LEVEL):
 				
 				
@@ -902,9 +921,9 @@ public enum State {
 	    Log.i("myGesture", "onBackPressed");
 	    switch (level){
 	    case (ROOM_LEVEL):
-	    	onDestroy();
-	    	super.onBackPressed();
-	    	return;
+	    	
+	    	level = LIMBO;
+	    	break;
 	    case (OBJECT_LEVEL):
 	    	level = LIMBO;
 	    	//send led off msg to previously connected client
@@ -917,6 +936,7 @@ public enum State {
 	    	break;
 	    
 	    case (LIMBO):
+	    	onDestroy();
 	    	super.onBackPressed();
 	    	return;
 	    }
