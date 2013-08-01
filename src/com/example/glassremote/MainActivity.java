@@ -299,8 +299,16 @@ public enum State {
 				}
 			}
 			
-		
+			//update the led for selected client candidate
+			//set the previously hovering one to blink slow
+			Variable var_led = getVariable(currentObject, "led"); 
+			connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'S', "20"));
+	    
 			currentObject=room.get(objectIndex);
+			//set the current hovering one to blink fast
+			var_led = getVariable(currentObject, "led"); 
+			connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'S', "80"));
+	    
 			//for objects in room, if current object blink fast else blink slow
 			varIndex=0;
 			holder = (LinearLayout) findViewById(R.id.list_holder);
@@ -687,18 +695,12 @@ public enum State {
 				//send out corresponding led commands
 				//selected client turn led on, others off
 				for (ControlledObject client: room) {
-					Variable var_led = null;
-					for (Variable v: client.getVariables()){
-						Log.i("debugging", "in loop with variable: " + v.getName());
-						if (v.getName().equals("led")){
-							var_led = v;
-						}
-					}
+					Variable var_led = getVariable(client, "led"); 
 					if (var_led!=null){
 						if(client.getName().equals(currentObject.getName())){
-							connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'S', "on"));	
+							connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'C', "on"));	
 						} else {
-							connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'S', "off"));
+							connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'C', "off"));
 					}}
 				}
 				break;
@@ -894,13 +896,8 @@ public enum State {
 	    case (OBJECT_LEVEL):
 	    	level = LIMBO;
 	    	//send led off msg to previously connected client
-		    Variable var_led = null;
-			for (Variable v: currentObject.getVariables()){
-				if (v.getName().equals("led")){
-					var_led = v;
-				}
-			}
-			connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'S', "off"));
+	    	Variable var_led = getVariable(currentObject, "led"); 
+			connectionManager.write(connectionManager.formatMessage(currentObject, var_led, 'C', "off"));
 	    
 	    	break;
 	    case (VARIABLE_LEVEL):
@@ -926,7 +923,15 @@ public enum State {
 	}
 	
 	
-	
+	public Variable getVariable(ControlledObject obj, String var_name){
+		 Variable var = null;
+			for (Variable v: obj.getVariables()){
+				if (v.getName().equals(var_name)){
+					return v;
+				}
+			}
+			return var;
+	}
 
 }
 
