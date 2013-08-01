@@ -103,7 +103,7 @@ public enum State {
 		multiTouchDetector = new MultiTouchDetector(this);
 		selectedColor = getResources().getColor(color.holo_blue_dark);
 		fadedColor = getResources().getColor(R.color.white_transparent);
-		receive("  02:01");
+		
 
 	}
 
@@ -203,10 +203,17 @@ public enum State {
 					}
 					else break;
 				}
+				String currentSubstringTrimmed="";
+				//TRIM OUT EXTRA SPACES
+				for (int i = 0; i < currentSubstring.length(); i++){
+					if (isNum(currentSubstring.charAt(i))){
+						currentSubstringTrimmed+=currentSubstring.charAt(i);
+					}
+				}
 				
 				try {
 					
-					addObjectToRoom(Integer.parseInt(currentSubstring));
+					addObjectToRoom(Integer.parseInt(currentSubstringTrimmed));
 					level = ROOM_LEVEL;
 				}
 				catch (NumberFormatException e){
