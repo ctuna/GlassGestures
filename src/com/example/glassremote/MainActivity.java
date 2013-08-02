@@ -517,10 +517,12 @@ public enum State {
 									rewindButton = new ImageView(context);
 									rewindButton.setImageDrawable(getResources().getDrawable(R.drawable.rewindsmall));
 									toggleButton = new ImageView(context);
+									
 									toggleButton.setImageDrawable(getResources().getDrawable(R.drawable.playsmall));
 									fastForwardButton = new ImageView(context);
-									fastForwardButton.setAlpha(.5f);
-									rewindButton.setAlpha(.5f);
+									fastForwardButton.setAlpha(.4f);
+									rewindButton.setAlpha(.4f);
+									toggleButton.setAlpha(1f);
 									fastForwardButton.setImageDrawable(getResources().getDrawable(R.drawable.fastforwardsmall));
 									relative.addView(rewindButton);
 									relative.addView(toggleButton);
@@ -630,8 +632,9 @@ public enum State {
 				runOnUiThread(new Runnable() {
 				     public void run() {
 			
-				    	 if (currentVariable.getBoolean()){
+				    	 if (!currentVariable.getBoolean()){
 				    		 toggleButton.setImageDrawable(getResources().getDrawable((R.drawable.playsmall)));
+				    		
 				    	 }
 				    	 else toggleButton.setImageDrawable(getResources().getDrawable((R.drawable.pausesmall)));
 				     }
