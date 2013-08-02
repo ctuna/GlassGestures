@@ -381,6 +381,7 @@ public enum State {
 	
 	ArrayList<LinearLayout> views = new ArrayList<LinearLayout>();
 	MainActivity context = this;
+	
 	public void resetLayout(){
 		Log.i("myGesture", "resetLayout");
 		
@@ -395,10 +396,6 @@ public enum State {
 				if (room.size()>0){
 					//IF THE ROOM HAS OBJECTS
 					currentObject = room.get(objectIndex);
-					//tell the currentObject to blink faster
-					//set the current hovering one to blink fast
-					Variable var_sel = getVariable(currentObject, "selection");
-					connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'S', "80"));
 					
 					currentVariable = currentObject.getVariables().get(varIndex);
 					varName = currentVariable.getName();
@@ -409,6 +406,12 @@ public enum State {
 				String currentName;
 				switch (level){
 					case (ROOM_LEVEL):
+						
+						//tell the currentObject to blink faster
+						//set the current hovering one to blink fast
+						Variable var_sel = getVariable(currentObject, "selection");
+						connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'S', "80"));
+						
 						
 						setContentView(R.layout.room_activity);
 						holder = (LinearLayout) findViewById(R.id.list_holder);
