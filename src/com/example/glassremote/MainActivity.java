@@ -406,7 +406,7 @@ public enum State {
 				String currentName;
 				switch (level){
 					case (ROOM_LEVEL):
-<<<<<<< HEAD
+
 						
 						//tell the currentObject to blink faster
 						//set the current hovering one to blink fast
@@ -414,9 +414,8 @@ public enum State {
 						connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'S', "80"));
 						
 						
-=======
 						Log.i("myGesture", "resetLayout to ROOM LEVEL");
->>>>>>> 5c5c89c9610067b6b6453e37f06647864926e516
+						
 						setContentView(R.layout.room_activity);
 						holder = (LinearLayout) findViewById(R.id.list_holder);
 						holder.removeAllViews();
