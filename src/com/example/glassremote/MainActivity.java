@@ -575,6 +575,7 @@ public enum State {
 				
 			}
 			else{
+				Log.i("debugging", "in update value");
 				valueOfVariable.setProgress(Integer.parseInt(currentValue));
 				connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'S', currentValue));
 				
