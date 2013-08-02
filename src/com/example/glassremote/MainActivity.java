@@ -101,10 +101,14 @@ public enum State {
 		if (connectingToLaptop){
 			//MAKE TEXT DISPLAY LOADING UNTIL CONNECTED SUCCESSFULLY 
 			((TextView)findViewById(R.id.message)).setText("loading...");
-			while (!connectionManager.getIsConnected()){
-				Log.i("debugging", "trying to connect");
+			if(connectionManager == null) {
 				connectionManager= new ConnectionManager(this);
 				connectionManager.start();
+			}
+			while (!connectionManager.getIsConnected()){
+				Log.i("debugging", "trying to connect");
+				
+				
 			}
 			((TextView)findViewById(R.id.message)).setText("tap to connect");
 		}
