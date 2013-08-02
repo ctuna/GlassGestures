@@ -33,7 +33,7 @@ GestureDetector.OnDoubleTapListener doubleGestureDetector;
 boolean double_tap_down = false;
 boolean double_tap_pointer_down=false;
 
-public boolean connectingToLaptop = true;
+public boolean connectingToLaptop = false;
 
 //TWO NAVIGATES = TRUE means switching with 2 fingers, scrolling with 1 
 public boolean twoNavigates = true;
@@ -134,7 +134,18 @@ public enum State {
 	
 	@Override
 	protected void onDestroy(){
-		connectionManager.destroy();
+		if (connectingToLaptop){
+			for (ControlledObject object : room){
+				//TURN OFF LIGHTS WHEN SHUT DOWN
+				for (Variable v : object.getVariables()){
+					if (v.getName().equals("selection")){
+						connectionManager.write(connectionManager.formatMessage(object, v, 'C', "off"));
+				}
+			}
+		}
+		
+			connectionManager.destroy();
+		}
 		 super.onStop();
 	}
 	//GESTURES
@@ -360,8 +371,9 @@ public enum State {
 			currentVariable = currentObject.getVariables().get(varIndex);
 			
 			holder = (LinearLayout) findViewById(R.id.list_holder);
-			for (int i = 0 ; i < currentObject.getVariables().size(); i ++){
+			for (int i = 0 ; i < currentObject.getVariables().size()-1; i ++){
 				LinearLayout current = (LinearLayout) holder.getChildAt(i);
+				
 				TextView currentText = (TextView) current.getChildAt(0);
 				if (currentText.getText().equals(currentVariable.getName())){
 					currentText.setTextColor(selectedColor);
