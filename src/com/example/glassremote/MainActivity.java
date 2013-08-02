@@ -50,7 +50,9 @@ int videoLengthInMillis = 1000;
 TextView nameOfObject;
 ImageView currentAlert;
 TextView valueOfVariable;
-
+ImageView rewindButton;
+ImageView toggleButton;
+ImageView fastForwardButton; 
 //STATES
 
 private final int ROOM_LEVEL = 0;
@@ -505,12 +507,31 @@ public enum State {
 							t.setPadding(0, 0, 20, 0);
 							t.setTextSize(textSize);
 							
-							RelativeLayout relative = new RelativeLayout(context);
+							LinearLayout relative = new LinearLayout(context);
 						
 							if (v.hasContinuous()){
+								if (v.getName().equals("video")){
+									relative.setOrientation(LinearLayout.HORIZONTAL);
+									//VIDEO CASE
+
+									rewindButton = new ImageView(context);
+									rewindButton.setImageDrawable(getResources().getDrawable(R.drawable.rewindsmall));
+									toggleButton = new ImageView(context);
+									toggleButton.setImageDrawable(getResources().getDrawable(R.drawable.playsmall));
+									fastForwardButton = new ImageView(context);
+									fastForwardButton.setAlpha(.5f);
+									rewindButton.setAlpha(.5f);
+									fastForwardButton.setImageDrawable(getResources().getDrawable(R.drawable.fastforwardsmall));
+									relative.addView(rewindButton);
+									relative.addView(toggleButton);
+									relative.addView(fastForwardButton);
+									}
+								else{
+									
+								
 								SeekBar progressBar = new SeekBar(context);
 								//ProgressBar progressBar = new ProgressBar(context, null, android.R.attr.progressBarStyle);
-								RelativeLayout.LayoutParams progressParams = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+								//RelativeLayout.LayoutParams progressParams = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
 								
 								progressBar.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 								ImageView image = new ImageView(context);
@@ -518,12 +539,13 @@ public enum State {
 								//TODO: aesthe
 								if (currentName.equals(currentVariable.getName())) {
 									currentAlert = image;
-							}
+								}
+								
 							
-								image.setImageDrawable(getResources().getDrawable(R.drawable.play_button));
+								//image.setImageDrawable(getResources().getDrawable(R.drawable.play_button));
 								relative.addView(progressBar);
-								relative.addView(image);
-								image.setLayoutParams(progressParams);
+								//relative.addView(image);
+								//image.setLayoutParams(progressParams);
 								String currentValue = v.getCurrentValue();
 								if (currentValue.equals("off")){
 									progressBar.setProgress(0);
@@ -534,6 +556,7 @@ public enum State {
 								}
 								else progressBar.setProgress(Integer.parseInt(currentValue));
 								}
+							}
 							else {
 								//DOES NOT HAVE CONTINUOUS, ONLY HAS BOOLEAN
 								CheckBox checkBox = new CheckBox(context);
@@ -593,7 +616,7 @@ public enum State {
 		int THRESHOLD = 3;
 
 		if (level == OBJECT_LEVEL){
-			RelativeLayout rel = (RelativeLayout) currentVariableLayout.getChildAt(1);
+			LinearLayout rel = (LinearLayout) currentVariableLayout.getChildAt(1);
 			
 			if (currentVariable.hasContinuous()) variableProgressBar = (ProgressBar) rel.getChildAt(0);	
 			else variableCheckBox = (CheckBox) rel.getChildAt(0);
@@ -660,7 +683,7 @@ public enum State {
 		Variable currentVariable = currentObject.getVariables().get(varIndex);
 		Log.i("debugging", "in updateValue current variable is: " + currentVariable.getName());
 		if (level == OBJECT_LEVEL){
-			RelativeLayout rel = (RelativeLayout) currentVariableLayout.getChildAt(1);
+			LinearLayout rel = (LinearLayout) currentVariableLayout.getChildAt(1);
 			
 			if (currentVariable.hasContinuous())variableProgressBar = (ProgressBar) rel.getChildAt(0);	
 			else variableCheckBox = (CheckBox) rel.getChildAt(0);
@@ -722,14 +745,13 @@ public enum State {
 		}
 	
 	public void updateValue(boolean increase){
+		//VIDEO CASE 
 		ProgressBar valueOfVariable = null;
 		int THRESHOLD = 3;
-		if (level == VARIABLE_LEVEL){
-			valueOfVariable = (ProgressBar) findViewById(R.id.variable_progress);
-		}
+		
 		if (level == OBJECT_LEVEL){
-			RelativeLayout rel = (RelativeLayout) currentVariableLayout.getChildAt(1);
-			valueOfVariable = (ProgressBar) rel.getChildAt(0);
+			//LinearLayout rel = (LinearLayout) currentVariableLayout.getChildAt(1);
+			//valueOfVariable = (ProgressBar) rel.getChildAt(0);
 		}
 		if (level == OBJECT_LEVEL || level == VARIABLE_LEVEL){
 			Log.i("cure", "currentvariable percent is"+ currentVariable.getPercentage());
@@ -739,17 +761,22 @@ public enum State {
 					}
 					//ADD 10 MILLIS TO POSITION
 					
-					currentVariable.setContinuous(currentVariable.getContinuous() + 10);
-					valueOfVariable.setProgress(currentVariable.getPercentage());
-				}
+					runOnUiThread(new Runnable() {
+					     public void run() {
+					    	 fastForwardButton.setAlpha(1f);
+					    	 Log.i("debugging", "setting alpha");
+					     }
+					});
+					}
 				else 	{
 					
 					if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', "DEC"));
 					//SUBTRACT 10 MILLIS FROM POSITION
-
-					Log.i("cure", "current variable get continuous is: " + (currentVariable.getContinuous()- 10));
-					currentVariable.setContinuous((currentVariable.getContinuous() - 100));
-					valueOfVariable.setProgress(currentVariable.getPercentage());
+					runOnUiThread(new Runnable() {
+					     public void run() {
+					    	 rewindButton.setAlpha(1f);
+					     }
+					});
 				}
 		}
 			
@@ -1083,8 +1110,16 @@ public enum State {
 	@Override
 	public void onScrollEnded(int numFingers) {
 		if (numFingers == fingersToToggle && !currentVariable.getName().equals("video")){
-	
+			
 			updateValue();
+		}
+		if (numFingers == fingersToToggle && currentVariable.getName().equals("video")){
+			runOnUiThread(new Runnable() {
+			     public void run() {
+			    	 fastForwardButton.setAlpha(.4f);
+			    	 rewindButton.setAlpha(.4f);
+			     }
+			});
 		}
 		// TODO Auto-generated method stub
 		
