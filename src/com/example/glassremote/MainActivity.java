@@ -618,13 +618,26 @@ public enum State {
 		if (level == OBJECT_LEVEL){
 			LinearLayout rel = (LinearLayout) currentVariableLayout.getChildAt(1);
 			
-			if (currentVariable.hasContinuous()) variableProgressBar = (ProgressBar) rel.getChildAt(0);	
-			else variableCheckBox = (CheckBox) rel.getChildAt(0);
+			if (!currentVariable.getName().equals("video")){
+					if (currentVariable.hasContinuous()) variableProgressBar = (ProgressBar) rel.getChildAt(0);	
+					else variableCheckBox = (CheckBox) rel.getChildAt(0);
 					}
+			}
 		if (level == OBJECT_LEVEL || level == VARIABLE_LEVEL)
 			{
 			String currentValue = currentVariable.getCurrentValue();
-			if (currentValue.equals("off")){
+			if (currentVariable.getName().equals("video")){
+				runOnUiThread(new Runnable() {
+				     public void run() {
+			
+				    	 if (currentVariable.getBoolean()){
+				    		 toggleButton.setImageDrawable(getResources().getDrawable((R.drawable.playsmall)));
+				    	 }
+				    	 else toggleButton.setImageDrawable(getResources().getDrawable((R.drawable.pausesmall)));
+				     }
+				});
+			}
+			else if (currentValue.equals("off")){
 				
 				if (currentVariable.hasContinuous() ) {
 					runOnUiThread(new Runnable() {
