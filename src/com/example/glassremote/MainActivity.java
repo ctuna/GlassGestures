@@ -134,18 +134,10 @@ public enum State {
 	
 	@Override
 	protected void onDestroy(){
-		if (connectingToLaptop){
-			for (ControlledObject object : room){
-				//TURN OFF LIGHTS WHEN SHUT DOWN
-				for (Variable v : object.getVariables()){
-					if (v.getName().equals("selection")){
-						connectionManager.write(connectionManager.formatMessage(object, v, 'C', "off"));
-				}
-			}
-		}
+			turnOffLights();
 		
 			connectionManager.destroy();
-		}
+		
 		 super.onStop();
 	}
 	//GESTURES
@@ -719,8 +711,24 @@ public enum State {
 		Log.i("debugging", "refreshing room");
 		room.clear();
 		connectionManager.initialMessage();
+		varIndex=0;
+		objectIndex=0;
 	}
 	
+	public void turnOffLights(){
+		if (connectingToLaptop){
+			for (ControlledObject object : room){
+				//TURN OFF LIGHTS WHEN SHUT DOWN
+				for (Variable v : object.getVariables()){
+					if (v.getName().equals("selection")){
+						connectionManager.write(connectionManager.formatMessage(object, v, 'C', "off"));
+				}
+			}
+		
+		
+	}
+		}
+	}
 	@Override
 	public boolean onSingleTapUp(MotionEvent e) {
 		//BEHAVIOR FOR TAP 
@@ -747,7 +755,7 @@ public enum State {
 				//send out corresponding led commands
 				//selected client turn led on, others off
 				Variable var_sel = getVariable(currentObject, "selection");
-				connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', "on"));
+				for (int i = 0; i < 3; i++) connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', "on"));
 				for (Variable v: currentObject.getVariables()){
 					if (!v.getName().equals("selection"))connectionManager.write(connectionManager.formatMessage(currentObject, v, 'R'));
 					
@@ -940,15 +948,13 @@ public enum State {
 	    Log.i("myGesture", "onBackPressed");
 	    switch (level){
 	    case (ROOM_LEVEL):
-	    	
+	    	turnOffLights();
 	    	level = LIMBO;
 	    	break;
 	    case (OBJECT_LEVEL):
 	    	level = LIMBO;
 	    	//send led off msg to previously connected client
-	    	Variable var_sel = getVariable(currentObject, "selection"); 
-			connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', "off"));
-	    
+	    	turnOffLights();
 	    	break;
 	    
 	    case (LIMBO):

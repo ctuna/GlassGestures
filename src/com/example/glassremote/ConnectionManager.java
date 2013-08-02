@@ -497,21 +497,26 @@ public String formatMessage(ControlledObject object, Variable variable, char fun
 	if (function != 'R'){
 		
 
-		if (variable.getName().equals("video")) {
-			
-				
-				if (!currentValue[0].equals("INC") && !currentValue[0].equals("DEC") ){
-					val = " ON";
-				}
-			
-		}
+		
 		
 		if (currentValue[0].equals("off")){
 			
 			function = 'C';
 			val = "OFF";
 		}
-
+		else if (variable.getName().equals("video")) {
+			
+			
+			if (!currentValue[0].equals("INC") && !currentValue[0].equals("DEC") ){
+				val = " ON";
+				function = 'C';
+			}
+			else {
+				function = 'C';
+				val = currentValue[0];
+			}
+		
+		}
 		else if (currentValue[0].equals("on")){
 			function = 'C';
 			val = " ON";
