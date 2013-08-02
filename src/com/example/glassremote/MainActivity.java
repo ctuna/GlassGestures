@@ -395,6 +395,11 @@ public enum State {
 				if (room.size()>0){
 					//IF THE ROOM HAS OBJECTS
 					currentObject = room.get(objectIndex);
+					//tell the currentObject to blink faster
+					//set the current hovering one to blink fast
+					Variable var_sel = getVariable(currentObject, "selection");
+					connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'S', "80"));
+					
 					currentVariable = currentObject.getVariables().get(varIndex);
 					varName = currentVariable.getName();
 					String varValue = currentVariable.getCurrentValue();
@@ -425,6 +430,7 @@ public enum State {
 							t=null;		
 						}
 					
+						
 						
 						break;
 					case (OBJECT_LEVEL):
