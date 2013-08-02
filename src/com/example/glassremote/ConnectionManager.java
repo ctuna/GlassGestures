@@ -49,6 +49,7 @@ public class ConnectionManager {
     public final int LATENCY = 100;
     private long lastWriteTime= -1L;
 	
+    private boolean isConnected = false;
 	public ConnectionManager (MainActivity master){
 		this.master=master;
 		//ARDUINO ADDRESS
@@ -117,7 +118,9 @@ public class ConnectionManager {
 
 
 
-
+    public boolean getIsConnected (){
+    	return isConnected;
+    }
 
     
 
@@ -264,12 +267,13 @@ private class ConnectThread extends Thread {
             // Connect the device through the socket. This will block
             // until it succeeds or throws an exception
             mmSocket.connect();
-
+            isConnected = true;
             // startConnectionThread();
         } catch (IOException connectException) {
             // Unable to connect; close the socket and get out
             Log.i("debugging", "unable to connect in ConnectThread.run");
             connectException.printStackTrace();
+            isConnected = false;
             //Toast toast = Toast.makeText(getApplicationContext(), "the server is not available", Toast.LENGTH_SHORT);
             //toast.show();
             try {
@@ -286,6 +290,7 @@ private class ConnectThread extends Thread {
         // Do work to manage the connection (in a separate thread)
         // manageConnectedSocket(mmSocket);
     }
+
 
     public synchronized void connected(BluetoothSocket socket) {
         // Cancel the thread that completed the connection
@@ -449,10 +454,14 @@ private final Handler mHandler = new Handler() {
 };
 
 public void write(String s){
+	long initialTime;
+	long threshold = 500;
+
 	if (s.substring(3, 6).equals("SEL")){
 		//DELAY 50 MS
-		long initialTime = Calendar.getInstance().getTimeInMillis();
-		int threshold = 50;
+		Log.i("debugging", "spinning before write");
+		initialTime = Calendar.getInstance().getTimeInMillis();
+		threshold = 100;
 		while (Calendar.getInstance().getTimeInMillis() - initialTime < threshold){
 			//SPIN
 		}
@@ -474,6 +483,13 @@ public void write(String s){
 		
 		
 
+	}
+	if (s.substring(3, 6).equals("SEL")){
+		initialTime = Calendar.getInstance().getTimeInMillis();
+	
+		while (Calendar.getInstance().getTimeInMillis() - initialTime < threshold){
+		//SPIN
+		}
 	}
 }
 

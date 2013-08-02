@@ -1,7 +1,6 @@
 package com.example.glassremote;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 
 import android.R.color;
@@ -10,13 +9,18 @@ import android.content.BroadcastReceiver;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.GestureDetector;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.CheckBox;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.ScrollView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 
@@ -33,7 +37,7 @@ GestureDetector.OnDoubleTapListener doubleGestureDetector;
 boolean double_tap_down = false;
 boolean double_tap_pointer_down=false;
 
-public boolean connectingToLaptop = true;
+public boolean connectingToLaptop = false;
 
 //TWO NAVIGATES = TRUE means switching with 2 fingers, scrolling with 1 
 public boolean twoNavigates = true;
@@ -41,9 +45,10 @@ int fingersToNavigate;
 int fingersToScroll;
 int fingersToToggle;
 
+int videoLengthInMillis = 1000;
 //LAYOUT STUFF
 TextView nameOfObject;
-
+ImageView currentAlert;
 TextView valueOfVariable;
 
 //STATES
@@ -92,9 +97,16 @@ public enum State {
 		setContentView(R.layout.activity_main);
 			super.onCreate(savedInstanceState);
 		setupNavigation();
-		connectionManager= new ConnectionManager(this);
+		
 		if (connectingToLaptop){
-			connectionManager.start();
+			//MAKE TEXT DISPLAY LOADING UNTIL CONNECTED SUCCESSFULLY 
+			((TextView)findViewById(R.id.message)).setText("loading...");
+			while (!connectionManager.getIsConnected()){
+				Log.i("debugging", "trying to connect");
+				connectionManager= new ConnectionManager(this);
+				connectionManager.start();
+			}
+			((TextView)findViewById(R.id.message)).setText("tap to connect");
 		}
 		else{
 			level=ROOM_LEVEL;
@@ -119,6 +131,7 @@ public enum State {
 		return true;
 	}
 
+	
 	public void setupNavigation(){
 		if (twoNavigates){
 			fingersToNavigate=2;
@@ -161,7 +174,7 @@ public enum State {
 				new Variable("brightness", true, false, 0, 100, this),
 				new Variable("selection", true, true, 0, 100, this));
 		ControlledObject laptop = new ControlledObject("laptop", 1,
-				new Variable("video", true, true, 0, 100, this),
+				new Variable("video", true, true, 0, 1000, this),
 				new Variable("volume", true, true,0, 100, this),
 				new Variable("selection", true, true, 0, 100, this));
 		objects = new HashMap<Integer, ControlledObject>();
@@ -193,8 +206,10 @@ public enum State {
 			String currentSubstring= message;
 			String nextSubstring="";
 			String[] halves = new String[2];
+			
 			while (currentSubstring.length()>=2){	//multiple clients responded
 				if (currentSubstring.contains(":")){
+					
 					halves = currentSubstring.split(":", 2);
 					currentSubstring = halves[0];
 					nextSubstring = halves[1];
@@ -223,7 +238,7 @@ public enum State {
 					
 					addObjectToRoom(Integer.parseInt(currentSubstringTrimmed));
 					
-					level = ROOM_LEVEL;
+					//level = ROOM_LEVEL;
 				}
 				catch (NumberFormatException e){
 					e.printStackTrace();
@@ -233,6 +248,22 @@ public enum State {
 				currentSubstring=nextSubstring;
 				
 						
+			}
+			
+			
+			if (room.size() == 1){
+				level = OBJECT_LEVEL;
+				objectIndex = 0;
+				currentObject=room.get(objectIndex);
+				Variable var_sel = getVariable(currentObject, "selection");
+				if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', "on"));
+			}
+			else if (room.size()>1){
+				level = ROOM_LEVEL;
+				currentObject = room.get(objectIndex);
+				Variable var_sel = getVariable(currentObject, "selection");
+				if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'S', "80"));
+				
 			}
 			
 			
@@ -323,7 +354,7 @@ public enum State {
 			currentObject=room.get(objectIndex);
 			//set the current hovering one to blink fast
 			Variable var_sel = getVariable(currentObject, "selection");
-			connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'S', "80"));
+			if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'S', "80"));
 	    
 			//for objects in room, if current object blink fast else blink slow
 			varIndex=0;
@@ -412,10 +443,6 @@ public enum State {
 					case (ROOM_LEVEL):
 
 						
-						//tell the currentObject to blink faster
-						//set the current hovering one to blink fast
-						Variable var_sel = getVariable(currentObject, "selection");
-						connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'S', "80"));
 						
 						
 						Log.i("myGesture", "resetLayout to ROOM LEVEL");
@@ -474,24 +501,47 @@ public enum State {
 							t.setPadding(0, 0, 20, 0);
 							t.setTextSize(textSize);
 							
-							
-							ProgressBar progressBar = new ProgressBar(context, null, android.R.attr.progressBarStyleHorizontal);
-							progressBar.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-							
-							String currentValue = v.getCurrentValue();
-							if (currentValue.equals("off")){
-								progressBar.setProgress(0);
-							}
-							else if (currentValue.equals("on")){
-								//ON/OFF CASE
-								progressBar.setProgress(100);
-							}
-							else progressBar.setProgress(Integer.parseInt(currentValue));
+							RelativeLayout relative = new RelativeLayout(context);
 						
+							if (v.hasContinuous()){
+								SeekBar progressBar = new SeekBar(context);
+								//ProgressBar progressBar = new ProgressBar(context, null, android.R.attr.progressBarStyle);
+								RelativeLayout.LayoutParams progressParams = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+								
+								progressBar.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+								ImageView image = new ImageView(context);
+								image.setAlpha(0f);
+								//TODO: aesthe
+								if (currentName.equals(currentVariable.getName())) {
+									currentAlert = image;
+							}
+							
+								image.setImageDrawable(getResources().getDrawable(R.drawable.play_button));
+								relative.addView(progressBar);
+								relative.addView(image);
+								image.setLayoutParams(progressParams);
+								String currentValue = v.getCurrentValue();
+								if (currentValue.equals("off")){
+									progressBar.setProgress(0);
+								}
+								else if (currentValue.equals("on")){
+								//ON/OFF CASE
+									progressBar.setProgress(100);
+								}
+								else progressBar.setProgress(Integer.parseInt(currentValue));
+								}
+							else {
+								//DOES NOT HAVE CONTINUOUS, ONLY HAS BOOLEAN
+								CheckBox checkBox = new CheckBox(context);
+								checkBox.setChecked(v.getBoolean());
+								relative.addView(checkBox);
+								
+								
+							}
 							
 							
 							l.addView(t);
-							l.addView(progressBar);
+							l.addView(relative);
 							
 							
 							holder.addView(l);
@@ -510,38 +560,8 @@ public enum State {
 							scroller.pageScroll(ScrollView.FOCUS_RIGHT);
 						}
 						break;
-					case (VARIABLE_LEVEL):
-						//GET VARIABLE, SCALE TO / 100
-						setContentView(R.layout.variable_activity);
-						TextView nameOfVariable=(TextView) findViewById(R.id.name_of_variable);
-						nameOfObject = (TextView) findViewById(R.id.name_of_object);
-						nameOfObject.setText(currentObject.getName());
-						nameOfVariable.setTextColor(selectedColor);
-						nameOfVariable.setText(varName);
-						ProgressBar valueOfVariable = (ProgressBar) findViewById(R.id.variable_progress);
-						String currentValue = currentVariable.getCurrentValue();
+				case (VARIABLE_LEVEL):
 						
-						if (currentValue.equals("off")){
-							valueOfVariable.setProgress(0);
-							connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable,'C', currentValue));
-							   
-							
-						}
-						else if (currentValue.equals("on")){
-							//ON/OFF CASE
-							valueOfVariable.setProgress(100);
-							connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
-							   
-						}
-						else {
-							valueOfVariable.setProgress(Integer.parseInt(currentValue));
-							connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'S', currentValue));
-						      
-						}
-					
-						  
-						break;
-				
 				
 				case (LIMBO):
 					Log.i("myGesture", "resetLayout to LIMBO");
@@ -561,76 +581,133 @@ public enum State {
 	public boolean isConnectingToLaptop(){
 		return connectingToLaptop;
 	}
+	ProgressBar variableProgressBar;
 	
 	public void updateValue(){
-		ProgressBar valueOfVariable = null;
-		if (level == VARIABLE_LEVEL){
-			valueOfVariable = (ProgressBar) findViewById(R.id.variable_progress);
-		}
+		currentVariable = currentObject.getVariables().get(varIndex);
+		CheckBox variableCheckBox=null;
+		int THRESHOLD = 3;
+
 		if (level == OBJECT_LEVEL){
-			valueOfVariable = (ProgressBar)currentVariableLayout.getChildAt(1);
-		}
+			RelativeLayout rel = (RelativeLayout) currentVariableLayout.getChildAt(1);
+			
+			if (currentVariable.hasContinuous()) variableProgressBar = (ProgressBar) rel.getChildAt(0);	
+			else variableCheckBox = (CheckBox) rel.getChildAt(0);
+					}
 		if (level == OBJECT_LEVEL || level == VARIABLE_LEVEL)
 			{
 			String currentValue = currentVariable.getCurrentValue();
 			if (currentValue.equals("off")){
-				valueOfVariable.setProgress(0);
-				connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
+				
+				if (currentVariable.hasContinuous() ) {
+					runOnUiThread(new Runnable() {
+					     public void run() {
+					    	 variableProgressBar.setAlpha(.4f);
+					     }
+					});
+				}
+				else variableCheckBox.setChecked(false);
+				if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
 				
 			}
 			else if (currentValue.equals("on")){
 			//ON/OFF CASE
-				valueOfVariable.setProgress(100);
-				connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
+				if (currentVariable.hasContinuous()){
+					runOnUiThread(new Runnable() {
+					     public void run() {
+					    	 variableProgressBar.setAlpha(1f);
+					     }
+					});
+				}
+				else variableCheckBox.setChecked(true);
+				if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
 				
 			}
-			else{
-				Log.i("debugging", "in update value");
-				valueOfVariable.setProgress(Integer.parseInt(currentValue));
-				connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'S', currentValue));
+			else {
+				if (currentVariable.hasContinuous()) {
+					variableProgressBar.setProgress(Integer.parseInt(currentValue));
+					runOnUiThread(new Runnable() {
+					     public void run() {
+					    	 variableProgressBar.setAlpha(1f);
+					     }
+					});
+				}
+				
+				if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'S', currentValue));
 				
 			}
-				
-			
-			Log.i("bt_message", "value: " + currentValue);
-			
+			Log.i("bt_message", "send out value: " + currentValue);
 			}
 		
 		//FORMAT MESSAGE
 		
 		}
 	
+			
+		
+		//FORMAT MESSAGE
+		
+		
+	
 	public void updateValue(int oldVal){
-		ProgressBar valueOfVariable = null;
+		
+		CheckBox variableCheckBox=null;
 		int THRESHOLD = 3;
-		if (level == VARIABLE_LEVEL){
-			valueOfVariable = (ProgressBar) findViewById(R.id.variable_progress);
-		}
+		Variable currentVariable = currentObject.getVariables().get(varIndex);
+		Log.i("debugging", "in updateValue current variable is: " + currentVariable.getName());
 		if (level == OBJECT_LEVEL){
-			valueOfVariable = (ProgressBar)currentVariableLayout.getChildAt(1);
-		}
+			RelativeLayout rel = (RelativeLayout) currentVariableLayout.getChildAt(1);
+			
+			if (currentVariable.hasContinuous())variableProgressBar = (ProgressBar) rel.getChildAt(0);	
+			else variableCheckBox = (CheckBox) rel.getChildAt(0);
+					}
 		if (level == OBJECT_LEVEL || level == VARIABLE_LEVEL)
 			{
 			String currentValue = currentVariable.getCurrentValue();
 			if (currentValue.equals("off")){
-				valueOfVariable.setProgress(0);
-				connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
+				
+				if (currentVariable.hasContinuous()) {
+					runOnUiThread(new Runnable() {
+					     public void run() {
+					    	
+					    	 variableProgressBar.setAlpha(.4f);
+					     }
+					});
+				}
+				else variableCheckBox.setChecked(false);
+				if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
 				
 			}
 			else if (currentValue.equals("on")){
 			//ON/OFF CASE
-				valueOfVariable.setProgress(100);
-				connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
+				if (currentVariable.hasContinuous()){
+					runOnUiThread(new Runnable() {
+					     public void run() {
+					    	
+					    	 variableProgressBar.setAlpha(1f);
+					     }
+					});
+				}
+				else variableCheckBox.setChecked(true);
+				if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
 				
 			}
 			else {
-				valueOfVariable.setProgress(Integer.parseInt(currentValue));
+				if (currentVariable.hasContinuous()) {
+					variableProgressBar.setProgress(Integer.parseInt(currentValue));
+					runOnUiThread(new Runnable() {
+					     public void run() {
+					    	
+					    	 variableProgressBar.setAlpha(1f);
+					     }
+					});
+				}
 				if (Math.abs(Integer.parseInt(currentValue) - oldVal)< THRESHOLD){
 				
 					//don't send if hasn't changed enough 
 					return;
 				}
-				connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'S', currentValue));
+				if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'S', currentValue));
 				
 			}
 			Log.i("bt_message", "send out value: " + currentValue);
@@ -647,16 +724,33 @@ public enum State {
 			valueOfVariable = (ProgressBar) findViewById(R.id.variable_progress);
 		}
 		if (level == OBJECT_LEVEL){
-			valueOfVariable = (ProgressBar)currentVariableLayout.getChildAt(1);
+			RelativeLayout rel = (RelativeLayout) currentVariableLayout.getChildAt(1);
+			valueOfVariable = (ProgressBar) rel.getChildAt(0);
 		}
-		if (level == OBJECT_LEVEL || level == VARIABLE_LEVEL)
-			if (increase){
-				connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', "INC"));
-			}
-			else connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', "DEC"));
+		if (level == OBJECT_LEVEL || level == VARIABLE_LEVEL){
+			Log.i("cure", "currentvariable percent is"+ currentVariable.getPercentage());
+				if (increase){
+					if (connectingToLaptop) {
+						connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', "INC"));
+					}
+					//ADD 10 MILLIS TO POSITION
+					
+					currentVariable.setContinuous(currentVariable.getContinuous() + 10);
+					valueOfVariable.setProgress(currentVariable.getPercentage());
+				}
+				else 	{
+					
+					if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', "DEC"));
+					//SUBTRACT 10 MILLIS FROM POSITION
+
+					Log.i("cure", "current variable get continuous is: " + (currentVariable.getContinuous()- 10));
+					currentVariable.setContinuous((currentVariable.getContinuous() - 100));
+					valueOfVariable.setProgress(currentVariable.getPercentage());
+				}
+		}
 			
 			
-			}
+	}
 		
 		//FORMAT MESSAGE
 		
@@ -709,8 +803,14 @@ public enum State {
 	
 	public void refreshRoom(){
 		Log.i("debugging", "refreshing room");
-		room.clear();
-		connectionManager.initialMessage();
+		
+		if (connectingToLaptop) {
+			room.clear();
+			connectionManager.initialMessage();
+		}
+		else {
+			level = ROOM_LEVEL;
+		}
 		varIndex=0;
 		objectIndex=0;
 	}
@@ -721,7 +821,7 @@ public enum State {
 				//TURN OFF LIGHTS WHEN SHUT DOWN
 				for (Variable v : object.getVariables()){
 					if (v.getName().equals("selection")){
-						connectionManager.write(connectionManager.formatMessage(object, v, 'C', "off"));
+						if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(object, v, 'C', "off"));
 				}
 			}
 		
@@ -739,15 +839,13 @@ public enum State {
 			case (LIMBO):
 				
 				refreshRoom();
-				if (room.size()>0){
-					level = ROOM_LEVEL;
-				}
-				
+				Log.i("debugging", "in limbo, room size is: " + room.size());
+			
 				break;
 			case (ROOM_LEVEL):
 				
 				
-				
+			
 				level=OBJECT_LEVEL;
 				
 				//an object is selected, query initial status of each variables 
@@ -755,16 +853,22 @@ public enum State {
 				//send out corresponding led commands
 				//selected client turn led on, others off
 				Variable var_sel = getVariable(currentObject, "selection");
-				for (int i = 0; i < 3; i++) connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', "on"));
+				if (connectingToLaptop){
+				connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', "on"));
+			
 				for (Variable v: currentObject.getVariables()){
 					if (!v.getName().equals("selection"))connectionManager.write(connectionManager.formatMessage(currentObject, v, 'R'));
 					
 					
 				}
+				}
 				break;
 			case (OBJECT_LEVEL):
 				//TODO: SELECT VARIABLE
-				if (currentVariable.hasBoolean())currentVariable.setBoolean(!currentVariable.getBoolean());
+				if (currentVariable.hasBoolean()){
+					currentVariable.setBoolean(!currentVariable.getBoolean());
+					
+				}
 				updateValue();
 				return false;
 				//level=VARIABLE_LEVEL;
@@ -829,14 +933,17 @@ public enum State {
 					else {
 						newVal = (int) (currentVariable.getPercentage()-(distanceX/6));
 						oldVal = currentVariable.getPercentage();
-						currentVariable.setContinuous(newVal);
-						updateValue(oldVal);
+						if (currentVariable.hasContinuous()){
+							currentVariable.setContinuous(newVal);
+							updateValue(oldVal);
+						}
 					}
 				
 					
 					}
 					}
 			else{
+				Log.i("var", "turning it up");
 				//TODO: TURN IT UP
 				if (currentVariable.hasContinuous()){ 
 					if (currentVariable.getName().equals("video")){
@@ -846,8 +953,11 @@ public enum State {
 						Log.i("var", "turning it up");
 						oldVal = currentVariable.getPercentage();
 						newVal = (int)(currentVariable.getPercentage()-(distanceX/6));
-						currentVariable.setContinuous(newVal);
-						updateValue(oldVal);
+						if (currentVariable.hasContinuous()){
+							currentVariable.setContinuous(newVal);
+							updateValue(oldVal);
+						}
+						
 					}
 					}
 					}
