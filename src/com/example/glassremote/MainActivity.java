@@ -200,10 +200,10 @@ public enum State {
 				else{
 					nextSubstring="";
 				}
-				Log.i("string", "current substring is: "+ currentSubstring + " next is "+ nextSubstring);
+			
 				while (currentSubstring.length()>0){
 					if (!isNum(currentSubstring.charAt(0))) {
-						Log.i("debugging", currentSubstring.charAt(0) + "is not a number");
+				
 						currentSubstring = currentSubstring.substring(1);
 					}
 					else break;
@@ -219,6 +219,7 @@ public enum State {
 				try {
 					
 					addObjectToRoom(Integer.parseInt(currentSubstringTrimmed));
+					
 					level = ROOM_LEVEL;
 				}
 				catch (NumberFormatException e){
@@ -228,9 +229,7 @@ public enum State {
 				
 				currentSubstring=nextSubstring;
 				
-				Log.i("debugging",  "current substring is: " + currentSubstring + " with length "+ currentSubstring.length());
-				
-				
+						
 			}
 			
 			
@@ -284,7 +283,8 @@ public enum State {
 				Log.i("debugging", "added "+ objects.get(key).getName() + " to room");
 			}
 		}
-		else Log.i("debugging", "key " + key + " was invalid");	
+		else throw new NumberFormatException("key for object: " + key + " was invalid"); 
+			
 	}
 	
 	public void switchMode(boolean forward){
@@ -382,7 +382,7 @@ public enum State {
 	ArrayList<LinearLayout> views = new ArrayList<LinearLayout>();
 	MainActivity context = this;
 	public void resetLayout(){
-		Log.i("myGesture", "resetLayout");
+
 		
 		runOnUiThread(new Runnable() {
 		     public void run() {
@@ -404,7 +404,7 @@ public enum State {
 				String currentName;
 				switch (level){
 					case (ROOM_LEVEL):
-						
+						Log.i("myGesture", "resetLayout to ROOM LEVEL");
 						setContentView(R.layout.room_activity);
 						holder = (LinearLayout) findViewById(R.id.list_holder);
 						holder.removeAllViews();
@@ -428,6 +428,7 @@ public enum State {
 						
 						break;
 					case (OBJECT_LEVEL):
+						Log.i("myGesture", "resetLayout to OBJECT LEVEL");
 						//TODO: SEND READ FOR CURRENT OBJECT
 						setContentView(R.layout.object_activity);
 						
@@ -527,6 +528,7 @@ public enum State {
 				
 				
 				case (LIMBO):
+					Log.i("myGesture", "resetLayout to LIMBO");
 					setContentView(R.layout.activity_main);
 				
 					//TODO: TURN LEDS OFF
@@ -717,7 +719,7 @@ public enum State {
 				
 				//an object is selected, query initial status of each variables 
 				for (Variable v: currentObject.getVariables()){
-					connectionManager.write(connectionManager.formatMessage(currentObject, v, 'R'));
+					if (!v.getName().equals("selection"))connectionManager.write(connectionManager.formatMessage(currentObject, v, 'R'));
 					
 					
 				}
@@ -923,9 +925,6 @@ public enum State {
 			connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', "off"));
 	    
 	    	break;
-	    case (VARIABLE_LEVEL):
-	    	level=OBJECT_LEVEL;
-	    	break;
 	    
 	    case (LIMBO):
 	    	onDestroy();
@@ -939,7 +938,7 @@ public enum State {
 	@Override
 	public void onScrollEnded(int numFingers) {
 		if (numFingers == fingersToToggle && !currentVariable.getName().equals("video")){
-			Log.i("debugging", "SCROLL ENDED");
+	
 			updateValue();
 		}
 		// TODO Auto-generated method stub
