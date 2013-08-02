@@ -449,6 +449,14 @@ private final Handler mHandler = new Handler() {
 };
 
 public void write(String s){
+	if (s.substring(3, 6).equals("SEL")){
+		//DELAY 50 MS
+		long initialTime = Calendar.getInstance().getTimeInMillis();
+		int threshold = 50;
+		while (Calendar.getInstance().getTimeInMillis() - initialTime < threshold){
+			//SPIN
+		}
+	}
 	if (!master.isConnectingToLaptop()){
 		Log.i("debugging", "sent message: " + s);
 	}
@@ -456,13 +464,20 @@ public void write(String s){
 		long currentTime = Calendar.getInstance().getTimeInMillis();
 		
 			byte[] send = s.getBytes();
+			try {
 			mConnectedThread.write(send);
 			lastWriteTime = currentTime;
+			}
+			catch (NullPointerException e){
+				Log.i("debugging", "couldn't write message because unconnected");
+			}
 		
 		
 
 	}
 }
+
+
 
 public void initialMessage(){
 		//lastWriteTime = Calendar.getInstance().getTimeInMillis();

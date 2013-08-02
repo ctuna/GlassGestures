@@ -33,7 +33,7 @@ GestureDetector.OnDoubleTapListener doubleGestureDetector;
 boolean double_tap_down = false;
 boolean double_tap_pointer_down=false;
 
-public boolean connectingToLaptop = false;
+public boolean connectingToLaptop = true;
 
 //TWO NAVIGATES = TRUE means switching with 2 fingers, scrolling with 1 
 public boolean twoNavigates = true;
@@ -743,16 +743,16 @@ public enum State {
 				level=OBJECT_LEVEL;
 				
 				//an object is selected, query initial status of each variables 
+			
+				//send out corresponding led commands
+				//selected client turn led on, others off
+				Variable var_sel = getVariable(currentObject, "selection");
+				connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', "on"));
 				for (Variable v: currentObject.getVariables()){
 					if (!v.getName().equals("selection"))connectionManager.write(connectionManager.formatMessage(currentObject, v, 'R'));
 					
 					
 				}
-				//send out corresponding led commands
-				//selected client turn led on, others off
-				Variable var_sel = getVariable(currentObject, "selection");
-				connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', "on"));
-				
 				break;
 			case (OBJECT_LEVEL):
 				//TODO: SELECT VARIABLE
