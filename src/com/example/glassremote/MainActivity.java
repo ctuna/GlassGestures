@@ -776,6 +776,7 @@ public enum State {
 					
 					runOnUiThread(new Runnable() {
 					     public void run() {
+					    	 rewindButton.setAlpha(.4f);
 					    	 fastForwardButton.setAlpha(1f);
 					    	 Log.i("debugging", "setting alpha");
 					     }
@@ -788,6 +789,7 @@ public enum State {
 					runOnUiThread(new Runnable() {
 					     public void run() {
 					    	 rewindButton.setAlpha(1f);
+					    	 fastForwardButton.setAlpha(.4f);
 					     }
 					});
 				}
