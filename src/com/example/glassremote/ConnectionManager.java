@@ -454,42 +454,40 @@ private final Handler mHandler = new Handler() {
 };
 
 public void write(String s){
-	long initialTime;
-	long threshold = 500;
+	if (master.getConnectingToLaptop()){
+		long initialTime;
+		long threshold = 500;
 
-	if (s.substring(3, 6).equals("SEL")){
+		if (s.substring(3, 6).equals("SEL")){
 		//DELAY 50 MS
-		Log.i("debugging", "spinning before write");
-		initialTime = Calendar.getInstance().getTimeInMillis();
-		threshold = 100;
-		while (Calendar.getInstance().getTimeInMillis() - initialTime < threshold){
-			//SPIN
+			initialTime = Calendar.getInstance().getTimeInMillis();
+			threshold = 100;
+			while (Calendar.getInstance().getTimeInMillis() - initialTime < threshold){
+				//SPIN
+			}
 		}
-	}
-	if (!master.isConnectingToLaptop()){
-		Log.i("debugging", "sent message: " + s);
-	}
-	else {
+
 		long currentTime = Calendar.getInstance().getTimeInMillis();
-		
-			byte[] send = s.getBytes();
-			try {
+		byte[] send = s.getBytes();
+		try {
 			mConnectedThread.write(send);
 			lastWriteTime = currentTime;
 			}
-			catch (NullPointerException e){
-				Log.i("debugging", "couldn't write message because unconnected");
+		catch (NullPointerException e){
+			Log.i("debugging", "couldn't write message because unconnected");
 			}
-		
-		
-
-	}
-	if (s.substring(3, 6).equals("SEL")){
-		initialTime = Calendar.getInstance().getTimeInMillis();
 	
-		while (Calendar.getInstance().getTimeInMillis() - initialTime < threshold){
+		if (s.substring(3, 6).equals("SEL")){
+			initialTime = Calendar.getInstance().getTimeInMillis();
+			while (Calendar.getInstance().getTimeInMillis() - initialTime < threshold){
 		//SPIN
+			}
 		}
+	}
+	else {
+	
+		Log.i("debugging", "sent message: " + s);
+		
 	}
 }
 
