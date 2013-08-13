@@ -9,7 +9,7 @@ import android.content.BroadcastReceiver;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.GestureDetector;
-import android.view.Gravity;
+
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.ViewGroup.LayoutParams;
@@ -18,7 +18,6 @@ import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -28,48 +27,48 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
 GestureDetector gestureDetector;
 GestureDetector.OnDoubleTapListener doubleGestureDetector;
 
-/**
- * for detecting double tap, these three must happen in order
- * down with 1 pointer
- * pointer down with 2 pointers
- * pointer up with 1 pointer
- */
-boolean double_tap_down = false;
-boolean double_tap_pointer_down=false;
 
 public boolean connectingToLaptop = false;
 
+//NAVIGATION CONTROL
 //TWO NAVIGATES = TRUE means switching with 2 fingers, scrolling with 1 
 public boolean twoNavigates = true;
 int fingersToNavigate;
 int fingersToScroll;
 int fingersToToggle;
+int flingRight = 0;
+int flingLeft = 0;
 
-int videoLengthInMillis = 1000;
-//LAYOUT STUFF
+
+
+//LAYOUT 
 TextView nameOfObject;
 ImageView currentAlert;
 TextView valueOfVariable;
 ImageView rewindButton;
 ImageView toggleButton;
 ImageView fastForwardButton; 
-//STATES
-
-private final int ROOM_LEVEL = 0;
-private final int OBJECT_LEVEL = 1;
-private final int VARIABLE_LEVEL = 2;
-private final int LIMBO = 3;
-private int level = LIMBO;
-
-
+int textSize = 35;
+LinearLayout currentVariableLayout;
 int paddingAmount = 30;
 int selectedColor;
 int unSelectedColor;
 int fadedColor;
-int textSize = 35;
-LinearLayout currentVariableLayout;
-int flingRight = 0;
-int flingLeft = 0;
+float outOfFocus;
+
+/**
+ * STATES:
+ * Limbo: waiting for a connection request
+ * Room: lists all objects 
+ * Objects: list all variables of an object
+ */
+
+private final int LIMBO = 0;
+private final int ROOM_LEVEL = 1;
+private final int OBJECT_LEVEL = 2;
+private int level; 
+
+
 
 //VARIABLE CONTROL
 private ArrayList<ControlledObject> room;
@@ -82,52 +81,31 @@ private int objectIndex = 0;
 
 //MESSAGING
 ConnectionManager connectionManager;
-private boolean waitingOnIds=false;
-private final String REQUEST_OBJECTS = "FF0000000";
-private BroadcastReceiver mReceiver=null;
-/**
- * STATES FOR TWO FINGER TAP
- */
-public enum State {
-    NONEDOWN, ONEDOWN, TWODOWN;
-}
-//boolean double_tap_pointer_up= false;
+
 
 @Override
 	protected void onCreate(Bundle savedInstanceState) {
-	
-		setContentView(R.layout.activity_main);
-			super.onCreate(savedInstanceState);
+		//begin in limbo
+		level = LIMBO;
+		resetContentView();
+		super.onCreate(savedInstanceState);
 		setupNavigation();
-		
+		connectionManager= new ConnectionManager(this);
 		if (connectingToLaptop){
 			//MAKE TEXT DISPLAY LOADING UNTIL CONNECTED SUCCESSFULLY 
-			((TextView)findViewById(R.id.message)).setText("loading...");
-			if(connectionManager == null) {
-				connectionManager= new ConnectionManager(this);
+
 				connectionManager.start();
-			}
-			while (!connectionManager.getIsConnected()){
-				Log.i("debugging", "trying to connect");
-				
-				
-			}
-			((TextView)findViewById(R.id.message)).setText("tap to connect");
 		}
-		else{
-			level=ROOM_LEVEL;
-		}
+		
 		//ASK FOR OBJECTS
 	
 	
 		initializeObjects();
 		resetLayout();
 		gestureDetector = new GestureDetector(this, this);
-		multiTouchDetector = new MultiTouchDetector(this);
 		selectedColor = getResources().getColor(color.holo_blue_dark);
 		fadedColor = getResources().getColor(R.color.white_transparent);
-		
-
+		outOfFocus=.5f;
 	}
 
 	@Override
@@ -137,6 +115,19 @@ public enum State {
 		return true;
 	}
 
+	public void resetContentView(){
+		switch (level){
+			case(LIMBO):
+				setContentView(R.layout.activity_main);
+				break;
+			case(ROOM_LEVEL):
+				setContentView(R.layout.room_activity);
+				break;
+			case(OBJECT_LEVEL):
+				setContentView(R.layout.object_activity);	
+				break;
+		}
+	}
 	
 	public void setupNavigation(){
 		if (twoNavigates){
@@ -154,15 +145,13 @@ public enum State {
 	@Override
 	protected void onDestroy(){
 			turnOffLights();
-		
 			connectionManager.destroy();
-		
-		 super.onStop();
+			super.onStop();
 	}
 	//GESTURES
     
-	public void setBroadcastReceiver(BroadcastReceiver b){
-		this.mReceiver=b;
+	public boolean getConnectingToLaptop(){
+		return connectingToLaptop;
 	}
     /**
      * lamp->light	on/off	continuous
@@ -197,37 +186,30 @@ public enum State {
 		}
 	}
 	
-	public boolean isNum(char c){
-		return (c == '0' || c == '1' || c =='2' ||
-				c == '3' || c == '4' || c =='5' ||
-				c == '6' || c == '7' || c =='8' ||
-				c == '9');
-	}
+
 	
 	public void receive(String message){
-		Log.i("debugging", "received string:  " + message + " with length " + message.length());
-		if (level == LIMBO || level == ROOM_LEVEL){
-
-			boolean hasNext=false;
+		Log.i("debugging", "received string:  " + message);
+		//if (level == LIMBO || level == ROOM_LEVEL){
+		
+		if (level == LIMBO ){
+			//PARSE RESPONSE TO FF000000
 			String currentSubstring= message;
 			String nextSubstring="";
 			String[] halves = new String[2];
 			
 			while (currentSubstring.length()>=2){	//multiple clients responded
 				if (currentSubstring.contains(":")){
-					
 					halves = currentSubstring.split(":", 2);
 					currentSubstring = halves[0];
 					nextSubstring = halves[1];
-					
 				}
 				else{
 					nextSubstring="";
 				}
 			
 				while (currentSubstring.length()>0){
-					if (!isNum(currentSubstring.charAt(0))) {
-				
+					if (!Helper.isNum(currentSubstring.charAt(0))) {
 						currentSubstring = currentSubstring.substring(1);
 					}
 					else break;
@@ -235,87 +217,79 @@ public enum State {
 				String currentSubstringTrimmed="";
 				//TRIM OUT EXTRA SPACES
 				for (int i = 0; i < currentSubstring.length(); i++){
-					if (isNum(currentSubstring.charAt(i))){
+					if (Helper.isNum(currentSubstring.charAt(i))){
 						currentSubstringTrimmed+=currentSubstring.charAt(i);
 					}
 				}
 				
-				try {
-					
+				try {					
 					addObjectToRoom(Integer.parseInt(currentSubstringTrimmed));
-					
-					//level = ROOM_LEVEL;
 				}
 				catch (NumberFormatException e){
 					e.printStackTrace();
-					
 				}
-				
 				currentSubstring=nextSubstring;
-				
 						
-			}
-			
-			
-			if (room.size() == 1){
-				level = OBJECT_LEVEL;
-				objectIndex = 0;
+				}
+			if (room.size()>=1){
 				currentObject=room.get(objectIndex);
 				Variable var_sel = getVariable(currentObject, "selection");
-				//taking this part to glass.ino
-				//if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', "on"));
-			}
-			else if (room.size()>1){
-				level = ROOM_LEVEL;
-				currentObject = room.get(objectIndex);
-				Variable var_sel = getVariable(currentObject, "selection");
-				//taking this part to glass.ino
-				//if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'S', "80"));
-				
-			}
 			
-			
-			//PARSE IDS
+				if (room.size() == 1){
+					level = OBJECT_LEVEL;
+					objectIndex = 0;
+					//taking this part to glass.ino
+					//connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', "on"));
+				}
+				else if (room.size()>1){
+					level = ROOM_LEVEL;
+					//taking this part to glass.ino
+					//connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'S', "80"));
+			}
+			}
+
 		}
 			
 		
-		else{	//Object level -> returns of READ msg
+		else{	
+			//NOT INITIAL MESSAGE
 			try {
 			String id = message.substring(0, 2);
 			String fn = message.substring(2, 3);
 			String variable = message.substring(3, 6);
 			String value = message.substring(6, 9);
-			
+			//PARSE NORMAL MESSAGE
 			for (Variable currentVar : currentObject.getVariables()){
 				if (currentVar.getAbbreviation().equals(variable)){
-					//JUST BOOLEAN
-					boolean on = !value.equals("OFF");
-					if (currentVar.hasBoolean() && !currentVar.hasContinuous()){
-						currentVar.setBoolean(on);
-					}
-					if (currentVar.hasBoolean() && currentVar.hasContinuous()){
-						if (!on){
-							currentVar.setBoolean(!on);
+					if (fn.equals("A")){
+						//IF IT'S AN ACK, SET VALUE
+						boolean on = !value.equals("OFF");
+						if (currentVar.hasBoolean() && !currentVar.hasContinuous()){
+							currentVar.setBoolean(on);
 						}
-						else {
-							currentVar.setContinuous(Integer.parseInt(value));
+						//IF OFF, SET TO OFF, IF ON, SET TO CONTINUOUS VALUE 
+						if (currentVar.hasBoolean() && currentVar.hasContinuous()){
+							if (!on){
+								currentVar.setBoolean(!on);
+							}
+							else {
+								currentVar.setContinuous(Integer.parseInt(value));
 							}
 					}
-					//BOOL/CONTINUOUS
+					
 				}
+			}
 			}
 			}
 			catch (StringIndexOutOfBoundsException e) {
 				Log.i("debugging", "badly formatted message: " + message);
 			}
-			//PARSE NORMAL MESSAGE
+			
 		}
 		resetLayout();
 	}
 	
-	public void onValueChanged(){
-		
-	}
+
 	
 	public void addObjectToRoom(int key){
 		if (objects.containsKey(key)){
@@ -326,7 +300,6 @@ public enum State {
 			}
 		}
 		else throw new NumberFormatException("key for object: " + key + " was invalid"); 
-			
 	}
 	
 	public void switchMode(boolean forward){
@@ -334,6 +307,7 @@ public enum State {
 		LinearLayout holder;
 		HorizontalScrollView scroller = (HorizontalScrollView)findViewById (R.id.scroller);
 		switch (level){
+		
 		case (ROOM_LEVEL):
 			//switch to a different client candidate
 			
@@ -362,7 +336,7 @@ public enum State {
 			currentObject=room.get(objectIndex);
 			//set the current hovering one to blink fast
 			Variable var_sel = getVariable(currentObject, "selection");
-			if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'S', "80"));
+			connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'S', "80"));
 	    
 			//for objects in room, if current object blink fast else blink slow
 			varIndex=0;
@@ -373,8 +347,12 @@ public enum State {
 				TextView currentText = (TextView) holder.getChildAt(i);
 				if (currentText.getText().equals(currentObject.getName())){
 					currentText.setTextColor(selectedColor);
+					currentText.setAlpha(1f);
 				}
-				else currentText.setTextColor(unSelectedColor);
+				else {
+					currentText.setTextColor(unSelectedColor);
+					currentText.setAlpha(outOfFocus);
+				}
 			}
 			
 			
@@ -382,7 +360,8 @@ public enum State {
 		case (OBJECT_LEVEL):
 			scroller = (HorizontalScrollView)findViewById (R.id.scroller);
 			length = currentObject.getVariables().size();
-			if (forward && varIndex != length - 1) {
+			//- 2 SO LED IS HIDDEN
+			if (forward && varIndex != length - 2) {
 				varIndex++;
 				if (flingRight > 1){
 					flingRight = 0;
@@ -408,16 +387,19 @@ public enum State {
 				TextView currentText = (TextView) current.getChildAt(0);
 				if (currentText.getText().equals(currentVariable.getName())){
 					currentText.setTextColor(selectedColor);
+					current.setAlpha(1f);
 					currentVariableLayout = current;
 				}
-				else currentText.setTextColor(unSelectedColor);
+				else {
+					currentText.setTextColor(unSelectedColor);
+					current.setAlpha(outOfFocus);
+				}
 			}
 			
-			break;
-		case (VARIABLE_LEVEL):
-			break;	
-		}
+			
+	
 		//resetLayout();
+	}
 	}
 	
 
@@ -447,15 +429,9 @@ public enum State {
 				LinearLayout holder;
 				TextView t;
 				String currentName;
+				resetContentView();
 				switch (level){
 					case (ROOM_LEVEL):
-
-						
-						
-						
-						Log.i("myGesture", "resetLayout to ROOM LEVEL");
-						
-						setContentView(R.layout.room_activity);
 						holder = (LinearLayout) findViewById(R.id.list_holder);
 						holder.removeAllViews();
 						
@@ -470,6 +446,10 @@ public enum State {
 							t.setPadding(0,  0 , 20, 0);
 							if (currentName.equals(currentObject.getName())) {
 								t.setTextColor(selectedColor);
+								t.setAlpha(1f);
+							}
+							else{
+								t.setAlpha(outOfFocus);
 							}
 							holder.addView(t);
 							t=null;		
@@ -479,9 +459,7 @@ public enum State {
 						
 						break;
 					case (OBJECT_LEVEL):
-						Log.i("myGesture", "resetLayout to OBJECT LEVEL");
-						//TODO: SEND READ FOR CURRENT OBJECT
-						setContentView(R.layout.object_activity);
+				
 						
 						holder = (LinearLayout) findViewById(R.id.list_holder);
 						holder.removeAllViews();
@@ -504,7 +482,9 @@ public enum State {
 							currentName = v.getName();
 							if (currentName.equals(currentVariable.getName())) {
 								t.setTextColor(selectedColor);
+								l.setAlpha(1f);
 							}
+							else {l.setAlpha(outOfFocus);}
 							t.setText(currentName);
 							t.setPadding(0, 0, 20, 0);
 							t.setTextSize(textSize);
@@ -515,7 +495,9 @@ public enum State {
 								if (v.getName().equals("video")){
 									relative.setOrientation(LinearLayout.HORIZONTAL);
 									//VIDEO CASE
-
+									//DEFAULT TO PAUSED FIRST
+									v.setBoolean(false);
+									
 									rewindButton = new ImageView(context);
 									rewindButton.setImageDrawable(getResources().getDrawable(R.drawable.rewindsmall));
 									toggleButton = new ImageView(context);
@@ -591,18 +573,11 @@ public enum State {
 							scroller.pageScroll(ScrollView.FOCUS_RIGHT);
 						}
 						break;
-				case (VARIABLE_LEVEL):
-						
-				
-				case (LIMBO):
-					Log.i("myGesture", "resetLayout to LIMBO");
-					setContentView(R.layout.activity_main);
-				
-					//TODO: TURN LEDS OFF
-			
+					
+				case (LIMBO):			
 					break;
 				}
-		     
+			
 		     
 		     }
 		});
@@ -627,7 +602,7 @@ public enum State {
 					else variableCheckBox = (CheckBox) rel.getChildAt(0);
 					}
 			}
-		if (level == OBJECT_LEVEL || level == VARIABLE_LEVEL)
+		if (level == OBJECT_LEVEL)
 			{
 			String currentValue = currentVariable.getCurrentValue();
 			if (currentVariable.getName().equals("video")){
@@ -641,6 +616,7 @@ public enum State {
 				    	 else toggleButton.setImageDrawable(getResources().getDrawable((R.drawable.pausesmall)));
 				     }
 				});
+				if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
 			}
 			else if (currentValue.equals("off")){
 				
@@ -706,7 +682,7 @@ public enum State {
 			if (currentVariable.hasContinuous())variableProgressBar = (ProgressBar) rel.getChildAt(0);	
 			else variableCheckBox = (CheckBox) rel.getChildAt(0);
 					}
-		if (level == OBJECT_LEVEL || level == VARIABLE_LEVEL)
+		if (level == OBJECT_LEVEL)
 			{
 			String currentValue = currentVariable.getCurrentValue();
 			if (currentValue.equals("off")){
@@ -771,7 +747,7 @@ public enum State {
 			//LinearLayout rel = (LinearLayout) currentVariableLayout.getChildAt(1);
 			//valueOfVariable = (ProgressBar) rel.getChildAt(0);
 		}
-		if (level == OBJECT_LEVEL || level == VARIABLE_LEVEL){
+		if (level == OBJECT_LEVEL ){
 			Log.i("cure", "currentvariable percent is"+ currentVariable.getPercentage());
 				if (increase){
 					if (connectingToLaptop) {
@@ -924,10 +900,7 @@ public enum State {
 				updateValue();
 				return false;
 				//level=VARIABLE_LEVEL;
-				
-			case (VARIABLE_LEVEL):
-				
-				break;
+		
 		}
 		resetLayout();
 	return false;
