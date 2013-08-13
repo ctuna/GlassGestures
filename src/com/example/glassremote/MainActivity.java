@@ -262,13 +262,15 @@ public enum State {
 				objectIndex = 0;
 				currentObject=room.get(objectIndex);
 				Variable var_sel = getVariable(currentObject, "selection");
-				if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', "on"));
+				//taking this part to glass.ino
+				//if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', "on"));
 			}
 			else if (room.size()>1){
 				level = ROOM_LEVEL;
 				currentObject = room.get(objectIndex);
 				Variable var_sel = getVariable(currentObject, "selection");
-				if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'S', "80"));
+				//taking this part to glass.ino
+				//if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'S', "80"));
 				
 			}
 			
@@ -905,6 +907,7 @@ public enum State {
 				if (connectingToLaptop){
 				connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', "on"));
 			
+				//TODO: only send one specific cmd to tell client return all values in a single msg
 				for (Variable v: currentObject.getVariables()){
 					if (!v.getName().equals("selection"))connectionManager.write(connectionManager.formatMessage(currentObject, v, 'R'));
 					
