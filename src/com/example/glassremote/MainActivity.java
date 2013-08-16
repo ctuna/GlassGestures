@@ -198,7 +198,8 @@ ConnectionManager connectionManager;
 			String nextSubstring="";
 			String[] halves = new String[2];
 			
-			while (currentSubstring.length()>=2){	//multiple clients responded
+			Log.d("debugging", "string length:"+currentSubstring.length());
+			while (currentSubstring.length()>=3){	//one or more clients responded
 				if (currentSubstring.contains(":")){
 					halves = currentSubstring.split(":", 2);
 					currentSubstring = halves[0];
