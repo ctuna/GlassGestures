@@ -534,7 +534,19 @@ public String formatMessage(ControlledObject object, Variable variable, char fun
 		else if (currentValue[0].equals("on")){
 			function = 'C';
 			val = " ON";
-		}	
+		}
+		else if (currentValue[0].equals("aon")){
+			function = 'C';
+			val = "AON";
+		}
+		else if (currentValue[0].equals("1st")){
+			function = 'C';
+			val = "1st";
+		}
+		else if (currentValue[0].equals(" na")){
+			function = 'C';
+			val = " NA";
+		}
 		else {
 			function = 'S';
 			val = currentValue[0];

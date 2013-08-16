@@ -236,24 +236,28 @@ ConnectionManager connectionManager;
 				currentSubstring=nextSubstring;
 						
 				}
+			
+			Variable var_sel = getVariable(currentObject, "selection");
 			if (room.size()>=1){
 				currentObject=room.get(objectIndex);
-				Variable var_sel = getVariable(currentObject, "selection");
+				
 			
 				if (room.size() == 1){
 					level = OBJECT_LEVEL;
 					objectIndex = 0;
-					//taking this part to glass.ino
-					//connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', "on"));
+					//"AON" (auto on) means only 1 client responded and is auto selected
+			        //"ON" means selected manully among multiple targets by the user
+					connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', "aon"));
 				}
 				else if (room.size()>1){
 					level = ROOM_LEVEL;
-					//taking this part to glass.ino
-					//connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'S', "80"));
+					//get the first ID and ask to blink fast
+					connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', "1st"));
 				}
 			} else {
 				//no clients in room
 				Log.d("debugging", "room size is 0");
+				connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', " na"));
 			}
 
 		}
