@@ -28,7 +28,7 @@ GestureDetector gestureDetector;
 GestureDetector.OnDoubleTapListener doubleGestureDetector;
 
 
-public boolean connectingToLaptop = false;
+public boolean connectingToLaptop = true;
 
 //NAVIGATION CONTROL
 //TWO NAVIGATES = TRUE means switching with 2 fingers, scrolling with 1 
@@ -245,7 +245,10 @@ ConnectionManager connectionManager;
 					level = ROOM_LEVEL;
 					//taking this part to glass.ino
 					//connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'S', "80"));
-			}
+				}
+			} else {
+				//no clients in room
+				Log.d("debugging", "room size is 0");
 			}
 
 		}

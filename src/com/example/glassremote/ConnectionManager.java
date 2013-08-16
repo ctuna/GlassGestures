@@ -456,10 +456,10 @@ private final Handler mHandler = new Handler() {
 public void write(String s){
 	if (master.getConnectingToLaptop()){
 		long initialTime;
-		long threshold = 500;
+		long threshold = 300;
 
 		if (s.substring(3, 6).equals("SEL")){
-		//DELAY 50 MS
+		//DELAY
 			initialTime = Calendar.getInstance().getTimeInMillis();
 			threshold = 100;
 			while (Calendar.getInstance().getTimeInMillis() - initialTime < threshold){
