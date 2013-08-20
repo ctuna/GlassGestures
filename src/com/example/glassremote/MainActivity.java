@@ -264,7 +264,7 @@ ConnectionManager connectionManager;
 		}
 			
 		
-		else{	
+		else{	//leve != LIMBO
 			//NOT INITIAL MESSAGE
 			try {
 			String id = message.substring(0, 2);
@@ -894,14 +894,14 @@ ConnectionManager connectionManager;
 				//selected client turn led on, others off
 				Variable var_sel = getVariable(currentObject, "selection");
 				if (connectingToLaptop){
-				connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', "on"));
-			
-				//TODO: only send one specific cmd to tell client return all values in a single msg
-				for (Variable v: currentObject.getVariables()){
-					if (!v.getName().equals("selection"))connectionManager.write(connectionManager.formatMessage(currentObject, v, 'R'));
-					
-					
-				}
+					connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', "on"));
+				
+					//removing this msg and have client auto reply status once it's selected
+//					for (Variable v: currentObject.getVariables()){
+//						if (!v.getName().equals("selection"))connectionManager.write(connectionManager.formatMessage(currentObject, v, 'R'));
+//						
+//						
+//					}
 				}
 				break;
 			case (OBJECT_LEVEL):
