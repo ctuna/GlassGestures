@@ -237,10 +237,10 @@ ConnectionManager connectionManager;
 						
 				}
 			
-			Variable var_sel = getVariable(currentObject, "selection");
+			
 			if (room.size()>=1){
 				currentObject=room.get(objectIndex);
-				
+				Variable var_sel = getVariable(currentObject, "selection");
 			
 				if (room.size() == 1){
 					level = OBJECT_LEVEL;
@@ -257,7 +257,8 @@ ConnectionManager connectionManager;
 			} else {
 				//no clients in room
 				Log.d("debugging", "room size is 0");
-				connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', " na"));
+				//meaning no clients responded after the broadcast
+				connectionManager.write("00SELC NA\n");
 			}
 
 		}
