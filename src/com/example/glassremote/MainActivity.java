@@ -21,6 +21,7 @@ import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 
 public class MainActivity extends Activity implements GestureDetector.OnGestureListener, MultiTouchListener{
@@ -191,10 +192,10 @@ ConnectionManager connectionManager;
 	public void receive(String message){
 		Log.i("debugging", "received string:  " + message);
 		
-		if(message.length() >=9 && message.substring(6, 9).equals("TAR")){
-			//target experiment cmds => ignore
-			return;
-		}
+//		if(message.length() >=9 && message.substring(6, 9).equals("TAR")){
+//			//target experiment cmds => ignore
+//			return;
+//		}
 		
 		if (level == LIMBO ){
 			//PARSE RESPONSE TO FF000000
@@ -257,8 +258,10 @@ ConnectionManager connectionManager;
 			} else {
 				//no clients in room
 				Log.d("debugging", "room size is 0");
+				Toast toast = Toast.makeText(getApplicationContext(), "no appliances were found", Toast.LENGTH_SHORT);
+                toast.show();
 				//meaning no clients responded after the broadcast
-				connectionManager.write("00SELC NA\n");
+				connectionManager.write("00CSEL NA\n");
 			}
 
 		}
