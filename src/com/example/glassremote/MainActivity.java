@@ -1095,7 +1095,9 @@ ConnectionManager connectionManager;
 	    Log.i("myGesture", "onBackPressed");
 	    switch (level){
 	    case (ROOM_LEVEL):
-	    	turnOffLights();
+	    	//cancel from multiple selection
+	    	//will also trigger turn off lights (executed on client side)
+	    	connectionManager.write("00CSELCAN\n");
 	    	level = LIMBO;
 	    	break;
 	    case (OBJECT_LEVEL):
