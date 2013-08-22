@@ -856,16 +856,9 @@ ConnectionManager connectionManager;
 	
 	public void turnOffLights(){
 		if (connectingToLaptop){
-			for (ControlledObject object : room){
-				//TURN OFF LIGHTS WHEN SHUT DOWN
-				for (Variable v : object.getVariables()){
-					if (v.getName().equals("selection")){
-						if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(object, v, 'C', "off"));
-				}
-			}
-		
-		
-	}
+			currentObject=room.get(objectIndex);
+			Variable var_sel = getVariable(currentObject, "selection");
+			connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', "off"));
 		}
 	}
 	@Override
