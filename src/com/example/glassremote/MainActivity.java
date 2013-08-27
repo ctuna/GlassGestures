@@ -83,6 +83,11 @@ private int objectIndex = 0;
 //MESSAGING
 ConnectionManager connectionManager;
 
+//EXPERIMENT
+//default set to IR mode
+private final int MODE_IR = 1;		//get clients who received IR signal
+private final int MODE_LIST = 2;	//get all clients and shown in list
+private int exp_mode = MODE_LIST;
 
 @Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -107,6 +112,15 @@ ConnectionManager connectionManager;
 		selectedColor = getResources().getColor(color.holo_blue_dark);
 		fadedColor = getResources().getColor(R.color.white_transparent);
 		outOfFocus=.5f;
+		
+		if(exp_mode == MODE_IR) {
+			//tell glass arduino and clients that we are in list mode
+			Log.d("debugging", "sending cmd: exp IR mode");
+			connectionManager.write("00SMOD001\n");
+		}else{
+			Log.d("debugging", "sending cmd: exp list mode");
+			connectionManager.write("00SMOD002\n");
+		}
 	}
 
 	@Override
@@ -177,6 +191,8 @@ ConnectionManager connectionManager;
 		objects.put(laptop.getId(), laptop);
 		objects.put(lamp.getId(), lamp);
 		room = new ArrayList<ControlledObject>();
+		
+		
 		
 		if (!connectingToLaptop){
 		//ADD DUMMY OBJECTS
@@ -870,8 +886,23 @@ ConnectionManager connectionManager;
 		switch (level){
 			case (LIMBO):
 				
-				refreshRoom();
-				Log.i("debugging", "in limbo, room size is: " + room.size());
+				if(exp_mode == MODE_IR) {
+					refreshRoom();
+				} else if(exp_mode == MODE_LIST) {
+					level = ROOM_LEVEL;
+					//add all clients to room
+					for (int i=1; i<objects.size()+1; i++){
+						addObjectToRoom(i);
+						Log.d("debugging", "adding object " + objects.get(i).getName() + " to room" );
+					}
+					objectIndex = 0;
+					currentObject=room.get(objectIndex);
+					Variable var_sel = getVariable(currentObject, "selection");
+					connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', "1st"));
+					resetLayout();
+				}
+				
+				//Log.i("debugging", "in limbo, room size is: " + room.size());
 			
 				break;
 			case (ROOM_LEVEL):
