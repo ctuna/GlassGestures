@@ -145,7 +145,7 @@ ConnectionManager connectionManager;
 	
 	@Override
 	protected void onDestroy(){
-			turnOffLights();
+//			turnOffLights();
 			connectionManager.destroy();
 			super.onStop();
 	}
