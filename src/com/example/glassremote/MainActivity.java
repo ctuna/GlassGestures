@@ -187,9 +187,14 @@ private int exp_mode = MODE_LIST;
 				new Variable("video", true, true, 0, 1000, this),
 				new Variable("volume", true, true,0, 100, this),
 				new Variable("selection", true, true, 0, 100, this));
+		ControlledObject fridge = new ControlledObject("fridge", 3,
+				new Variable("temp", true, true, 0, 100, this),
+				new Variable("make ice", true, false,0, 1, this),
+				new Variable("selection", true, true, 0, 100, this));
 		objects = new HashMap<Integer, ControlledObject>();
 		objects.put(laptop.getId(), laptop);
 		objects.put(lamp.getId(), lamp);
+		objects.put(fridge.getId(), fridge);
 		room = new ArrayList<ControlledObject>();
 		
 		
