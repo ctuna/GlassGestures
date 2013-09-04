@@ -936,7 +936,12 @@ private int exp_mode = MODE_LIST;
 					connectionManager.write("00SMOD002\n");
 					level = LIMBO;
 					
-					
+					//add all clients to room
+					for (int i=1; i<objects.size()+1; i++){
+						addObjectToRoom(i);
+						Log.d("debugging", "adding object " + objects.get(i).getName() + " to room" );
+					}
+					Log.d("debugging", "room size: " + room.size() );
 					
 				}
 				break;
@@ -946,11 +951,7 @@ private int exp_mode = MODE_LIST;
 					refreshRoom();
 				} else if(exp_mode == MODE_LIST) {
 					level = ROOM_LEVEL;
-					//add all clients to room
-					for (int i=1; i<objects.size()+1; i++){
-						addObjectToRoom(i);
-						Log.d("debugging", "adding object " + objects.get(i).getName() + " to room" );
-					}
+					
 					objectIndex = 0;
 					currentObject=room.get(objectIndex);
 					Variable var_sel = getVariable(currentObject, "selection");
