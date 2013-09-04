@@ -931,9 +931,13 @@ private int exp_mode = MODE_LIST;
 					connectionManager.write("00SMOD001\n");
 					level = LIMBO;
 				}else{
+					//MODE LIST
 					Log.d("debugging", "sending cmd: exp list mode");
 					connectionManager.write("00SMOD002\n");
-					level = ROOM_LEVEL;
+					level = LIMBO;
+					
+					
+					
 				}
 				break;
 			case (LIMBO):
@@ -1173,8 +1177,8 @@ private int exp_mode = MODE_LIST;
 	    	//cancel from multiple selection
 	    	//will also trigger turn off lights (executed on client side)
 	    	connectionManager.write("00CSELCAN\n");
-	    	if (exp_mode == MODE_IR) level = LIMBO;
-	    	else level = SELECTION;
+	    	level = LIMBO;
+	    
 	    	break;
 	    case (OBJECT_LEVEL):
 	    	if (exp_mode == MODE_IR) level = LIMBO;
