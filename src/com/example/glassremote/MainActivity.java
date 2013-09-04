@@ -64,6 +64,7 @@ float outOfFocus;
  * Objects: list all variables of an object
  */
 
+private final int SELECTION = 3;
 private final int LIMBO = 0;
 private final int ROOM_LEVEL = 1;
 private final int OBJECT_LEVEL = 2;
@@ -89,10 +90,11 @@ private final int MODE_IR = 1;		//get clients who received IR signal
 private final int MODE_LIST = 2;	//get all clients and shown in list
 private int exp_mode = MODE_LIST;
 
+
 @Override
 	protected void onCreate(Bundle savedInstanceState) {
 		//begin in limbo
-		level = LIMBO;
+		level = SELECTION;
 		resetContentView();
 		super.onCreate(savedInstanceState);
 		setupNavigation();
@@ -107,12 +109,14 @@ private int exp_mode = MODE_LIST;
 	
 	
 		initializeObjects();
+		//see if an error happens, if so take out reset layout
 		resetLayout();
 		gestureDetector = new GestureDetector(this, this);
 		selectedColor = getResources().getColor(color.holo_blue_dark);
 		fadedColor = getResources().getColor(R.color.white_transparent);
 		outOfFocus=.5f;
 		
+		/**
 		if(exp_mode == MODE_IR) {
 			//tell glass arduino and clients that we are in list mode
 			Log.d("debugging", "sending cmd: exp IR mode");
@@ -120,7 +124,7 @@ private int exp_mode = MODE_LIST;
 		}else{
 			Log.d("debugging", "sending cmd: exp list mode");
 			connectionManager.write("00SMOD002\n");
-		}
+		}*/
 	}
 
 	@Override
@@ -132,6 +136,9 @@ private int exp_mode = MODE_LIST;
 
 	public void resetContentView(){
 		switch (level){
+			case(SELECTION):
+				setContentView(R.layout.mode_selection_activity);	
+				break;
 			case(LIMBO):
 				setContentView(R.layout.activity_main);
 				break;
@@ -336,11 +343,22 @@ private int exp_mode = MODE_LIST;
 	}
 	
 	public void switchMode(boolean forward){
+		Log.i("debugging", "onfling called on level SELECTION? " + (level == SELECTION) );
 		int length;
 		LinearLayout holder;
 		HorizontalScrollView scroller = (HorizontalScrollView)findViewById (R.id.scroller);
 		switch (level){
 		
+		case (SELECTION):
+			Log.i("debugging", "inside switchmode/selection");
+			if (forward){
+				exp_mode = MODE_IR;
+			}
+			else {
+				exp_mode = MODE_LIST;
+			}
+			resetLayout();
+			break;
 		case (ROOM_LEVEL):
 			//switch to a different client candidate
 			
@@ -464,6 +482,21 @@ private int exp_mode = MODE_LIST;
 				String currentName;
 				resetContentView();
 				switch (level){
+					case (SELECTION):
+						//LIST MODE
+						TextView listText = (TextView) findViewById(R.id.list_text);
+						TextView irText = (TextView) findViewById(R.id.ir_text);
+						if (exp_mode == MODE_LIST){
+							listText.setTextColor(selectedColor);
+							irText.setTextColor(unSelectedColor);
+							}
+						//IR MODE
+						else {
+							listText.setTextColor(unSelectedColor);
+							irText.setTextColor(selectedColor);
+						}
+						
+						break;
 					case (ROOM_LEVEL):
 						holder = (LinearLayout) findViewById(R.id.list_holder);
 						holder.removeAllViews();
@@ -889,6 +922,20 @@ private int exp_mode = MODE_LIST;
 		Log.i("debugging", "sent init message");
 		Log.i("debugging", "single tap up");
 		switch (level){
+			case (SELECTION):
+			
+			
+				if(exp_mode == MODE_IR) {
+					//tell glass arduino and clients that we are in list mode
+					Log.d("debugging", "sending cmd: exp IR mode");
+					connectionManager.write("00SMOD001\n");
+					level = LIMBO;
+				}else{
+					Log.d("debugging", "sending cmd: exp list mode");
+					connectionManager.write("00SMOD002\n");
+					level = ROOM_LEVEL;
+				}
+				break;
 			case (LIMBO):
 				
 				if(exp_mode == MODE_IR) {
@@ -1092,11 +1139,10 @@ private int exp_mode = MODE_LIST;
 	@Override
 	public void onFling(MotionEvent e1, MotionEvent e2, float velocityX,
 			float velocityY, int numFingers) {
-		
-		if (level == OBJECT_LEVEL || level == ROOM_LEVEL){
+		if (level == OBJECT_LEVEL || level == ROOM_LEVEL || level == SELECTION){
+	
 			if (numFingers==fingersToNavigate){
-			
-				
+
 				if (velocityX>0){
 					flingLeft = 0;
 					flingRight++;
@@ -1127,15 +1173,26 @@ private int exp_mode = MODE_LIST;
 	    	//cancel from multiple selection
 	    	//will also trigger turn off lights (executed on client side)
 	    	connectionManager.write("00CSELCAN\n");
-	    	level = LIMBO;
+	    	if (exp_mode == MODE_IR) level = LIMBO;
+	    	else level = SELECTION;
 	    	break;
 	    case (OBJECT_LEVEL):
-	    	level = LIMBO;
+	    	if (exp_mode == MODE_IR) level = LIMBO;
+	    	else  level = ROOM_LEVEL;
+	    	
 	    	//send led off msg to previously connected client
 	    	turnOffLights();
 	    	break;
 	    
+	    
 	    case (LIMBO):
+	    	level = SELECTION;
+	    	break;
+	    	//onDestroy();
+	    	//super.onBackPressed();
+	    	//return;
+	    
+	    case (SELECTION):
 	    	onDestroy();
 	    	super.onBackPressed();
 	    	return;
@@ -1146,6 +1203,9 @@ private int exp_mode = MODE_LIST;
 
 	@Override
 	public void onScrollEnded(int numFingers) {
+		//ONLY IF DONE CONNCETING/DONT SEND ERROR
+		if (level != SELECTION){
+		
 		if (numFingers == fingersToToggle && !currentVariable.getName().equals("video")){
 			
 			updateValue();
@@ -1157,6 +1217,7 @@ private int exp_mode = MODE_LIST;
 			    	 rewindButton.setAlpha(.4f);
 			     }
 			});
+		}
 		}
 		// TODO Auto-generated method stub
 		
