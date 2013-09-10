@@ -2,6 +2,7 @@ package com.example.glassremote;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import android.R.color;
 import android.app.Activity;
@@ -89,7 +90,9 @@ ConnectionManager connectionManager;
 private final int MODE_IR = 1;		//get clients who received IR signal
 private final int MODE_LIST = 2;	//get all clients and shown in list
 private int exp_mode = MODE_LIST;
-
+private final int TEST_TARGET = 1;
+private final int TEST_SCENARIO = 2;
+private int test_no = 2;
 
 @Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -185,33 +188,76 @@ private int exp_mode = MODE_LIST;
 	
 	public void initializeObjects(){
 		//DECLARE OBJECTS
-		//TODO: have objects send ID upon connection
 
-		ControlledObject lamp = new ControlledObject("lamp", 2,
-				new Variable("brightness", true, false, 0, 100, this),
+		ControlledObject fan = new ControlledObject("Fan", 11,
+				new Variable("power", true, false, 0, 100, this),
 				new Variable("selection", true, true, 0, 100, this));
-		ControlledObject laptop = new ControlledObject("laptop", 1,
+		ControlledObject music = new ControlledObject("Music", 12,
+				new Variable("music", true, true, 0, 1000, this),
+				new Variable("volume", true, true,0, 100, this),
+				new Variable("selection", true, true, 0, 100, this));
+		ControlledObject smartTV = new ControlledObject("TV", 13,
 				new Variable("video", true, true, 0, 1000, this),
 				new Variable("volume", true, true,0, 100, this),
 				new Variable("selection", true, true, 0, 100, this));
-		ControlledObject fridge = new ControlledObject("fridge", 3,
-				new Variable("temp", true, true, 0, 100, this),
-				new Variable("make ice", true, false,0, 1, this),
+		ControlledObject lamp = new ControlledObject("Lamp", 14,
+				new Variable("brightness", true, false, 0, 100, this),
 				new Variable("selection", true, true, 0, 100, this));
+		
+		ControlledObject target1 = new ControlledObject("Target01", 1,
+				new Variable("selection", true, true, 0, 100, this));
+		ControlledObject target2 = new ControlledObject("Target02", 2,
+				new Variable("selection", true, true, 0, 100, this));
+		ControlledObject target3 = new ControlledObject("Target03", 3,
+				new Variable("selection", true, true, 0, 100, this));
+		ControlledObject target4 = new ControlledObject("Target04", 4,
+				new Variable("selection", true, true, 0, 100, this));
+		ControlledObject target5 = new ControlledObject("Target05", 5,
+				new Variable("selection", true, true, 0, 100, this));
+		ControlledObject target6 = new ControlledObject("Target06", 6,
+				new Variable("selection", true, true, 0, 100, this));
+		ControlledObject target7 = new ControlledObject("Target07", 7,
+				new Variable("selection", true, true, 0, 100, this));
+		ControlledObject target8 = new ControlledObject("Target08", 8,
+				new Variable("selection", true, true, 0, 100, this));
+		ControlledObject target9 = new ControlledObject("Target09", 9,
+				new Variable("selection", true, true, 0, 100, this));
+		ControlledObject target10 = new ControlledObject("Target10", 10,
+				new Variable("selection", true, true, 0, 100, this));
+		
 		objects = new HashMap<Integer, ControlledObject>();
-		objects.put(laptop.getId(), laptop);
-		objects.put(lamp.getId(), lamp);
-		objects.put(fridge.getId(), fridge);
+
+//		objects.put(fridge.getId(), fridge);
+		
+		if(test_no == TEST_TARGET) {
+			objects.put(target1.getId(), target1);
+			objects.put(target2.getId(), target2);
+			objects.put(target3.getId(), target3);
+			objects.put(target4.getId(), target4);
+			objects.put(target5.getId(), target5);
+			objects.put(target6.getId(), target6);
+			objects.put(target7.getId(), target7);
+			objects.put(target8.getId(), target8);
+			objects.put(target9.getId(), target9);
+			objects.put(target10.getId(), target10);
+			
+		} else {
+			objects.put(fan.getId(), fan);
+			objects.put(music.getId(), music);
+			objects.put(smartTV.getId(), smartTV);
+			objects.put(lamp.getId(), lamp);
+		}
+		
 		room = new ArrayList<ControlledObject>();
 		
 		
 		
 		if (!connectingToLaptop){
 		//ADD DUMMY OBJECTS
-			room.add(laptop);
+			room.add(smartTV);
 			room.add(lamp);
-			currentObject=laptop;
-			currentVariable = laptop.getVariables().get(varIndex);
+//			currentObject=laptop;
+//			currentVariable = laptop.getVariables().get(varIndex);
 		}
 	}
 	
