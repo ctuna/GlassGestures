@@ -899,6 +899,7 @@ private int exp_mode = MODE_LIST;
 		
 		if (connectingToLaptop) {
 			room.clear();
+			Log.d("debugging", "objects size"+objects.size());
 			connectionManager.initialMessage();
 		}
 		else {
@@ -919,7 +920,7 @@ private int exp_mode = MODE_LIST;
 	public boolean onSingleTapUp(MotionEvent e) {
 		//BEHAVIOR FOR TAP 
 	
-		Log.i("debugging", "sent init message");
+//		Log.i("debugging", "sent init message");
 		Log.i("debugging", "single tap up");
 		switch (level){
 			case (SELECTION):
@@ -937,10 +938,18 @@ private int exp_mode = MODE_LIST;
 					level = LIMBO;
 					
 					//add all clients to room
-					for (int i=1; i<objects.size()+1; i++){
-						addObjectToRoom(i);
-						Log.d("debugging", "adding object " + objects.get(i).getName() + " to room" );
-					}
+//					for (Integer key: objects.keySet()){
+//						Log.d("debugging", "adding object " + objects.get(key).getName() + " to room" );
+//						addObjectToRoom(key);
+//					}
+					Iterator it = objects.entrySet().iterator();
+				    while (it.hasNext()) {
+				        HashMap.Entry pairs = (HashMap.Entry)it.next();
+				        System.out.println(pairs.getKey() + " = " + pairs.getValue());
+				        Log.d("debugging", "adding object " + pairs.getValue() + " to room" );
+				        addObjectToRoom((Integer) pairs.getKey());
+				        it.remove(); // avoids a ConcurrentModificationException
+				    }
 					Log.d("debugging", "room size: " + room.size() );
 					
 				}
