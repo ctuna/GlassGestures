@@ -13,18 +13,26 @@
 
 
         <TextView
-            android:id="@+id/list_text"
+            android:id="@+id/ir_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor = "@android:color/white"
              android:textSize = "35sp"
-            android:text="List" />
+            android:text="IR" />
                  <TextView
-            android:id="@+id/ir_text"
+            android:id="@+id/list_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor = "@android:color/white"
             android:textSize = "35sp"
             android:paddingLeft = "30dp"
-            android:text="IR" />
+            android:text="List" />
+        <TextView
+            android:id="@+id/home_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor = "@android:color/white"
+            android:textSize = "35sp"
+            android:paddingLeft = "30dp"
+            android:text="Home" />
         </LinearLayout>

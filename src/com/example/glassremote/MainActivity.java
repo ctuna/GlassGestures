@@ -3,6 +3,7 @@ package com.example.glassremote;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map.Entry;
 
 import android.R.color;
 import android.app.Activity;
@@ -89,10 +90,28 @@ ConnectionManager connectionManager;
 //default set to IR mode
 private final int MODE_IR = 1;		//get clients who received IR signal
 private final int MODE_LIST = 2;	//get all clients and shown in list
-private int exp_mode = MODE_LIST;
-private final int TEST_TARGET = 1;
-private final int TEST_SCENARIO = 2;
-private int test_no = 2;
+private final int MODE_HOME = 3;	//smart home scenario
+private int exp_mode = MODE_IR;
+
+
+
+
+ControlledObject fan;
+ControlledObject smartTV;
+ControlledObject lamp;
+ControlledObject music;
+
+ControlledObject target1;
+ControlledObject target2;
+ControlledObject target3;
+ControlledObject target4;
+ControlledObject target5;
+ControlledObject target6;
+ControlledObject target7;
+ControlledObject target8;
+ControlledObject target9;
+ControlledObject target10;
+
 
 @Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -108,10 +127,10 @@ private int test_no = 2;
 				connectionManager.start();
 		}
 		
-		//ASK FOR OBJECTS
-	
-	
+		
 		initializeObjects();
+		
+		
 		//see if an error happens, if so take out reset layout
 		resetLayout();
 		gestureDetector = new GestureDetector(this, this);
@@ -187,69 +206,94 @@ private int test_no = 2;
      */
 	
 	public void initializeObjects(){
+		
+		room = new ArrayList<ControlledObject>();
+		objects = new HashMap<Integer, ControlledObject>();
 		//DECLARE OBJECTS
 
-		ControlledObject fan = new ControlledObject("Fan", 11,
-				new Variable("power", true, false, 0, 100, this),
+		fan = new ControlledObject("Fan", 14,
+				new Variable("brightness", true, false, 0, 100, this),
 				new Variable("selection", true, true, 0, 100, this));
-		ControlledObject music = new ControlledObject("Music", 12,
+		music = new ControlledObject("Music", 12,
 				new Variable("music", true, true, 0, 1000, this),
 				new Variable("volume", true, true,0, 100, this),
 				new Variable("selection", true, true, 0, 100, this));
-		ControlledObject smartTV = new ControlledObject("TV", 13,
+		smartTV = new ControlledObject("TV", 11,
 				new Variable("video", true, true, 0, 1000, this),
 				new Variable("volume", true, true,0, 100, this),
 				new Variable("selection", true, true, 0, 100, this));
-		ControlledObject lamp = new ControlledObject("Lamp", 14,
+		lamp = new ControlledObject("Lamp", 13,
 				new Variable("brightness", true, false, 0, 100, this),
 				new Variable("selection", true, true, 0, 100, this));
 		
-		ControlledObject target1 = new ControlledObject("Target01", 1,
+		target1 = new ControlledObject("Target01", 1,
 				new Variable("selection", true, true, 0, 100, this));
-		ControlledObject target2 = new ControlledObject("Target02", 2,
+		target2 = new ControlledObject("Target02", 2,
 				new Variable("selection", true, true, 0, 100, this));
-		ControlledObject target3 = new ControlledObject("Target03", 3,
+		target3 = new ControlledObject("Target03", 3,
 				new Variable("selection", true, true, 0, 100, this));
-		ControlledObject target4 = new ControlledObject("Target04", 4,
+		target4 = new ControlledObject("Target04", 4,
 				new Variable("selection", true, true, 0, 100, this));
-		ControlledObject target5 = new ControlledObject("Target05", 5,
+		target5 = new ControlledObject("Target05", 5,
 				new Variable("selection", true, true, 0, 100, this));
-		ControlledObject target6 = new ControlledObject("Target06", 6,
+		target6 = new ControlledObject("Target06", 6,
 				new Variable("selection", true, true, 0, 100, this));
-		ControlledObject target7 = new ControlledObject("Target07", 7,
+		target7 = new ControlledObject("Target07", 7,
 				new Variable("selection", true, true, 0, 100, this));
-		ControlledObject target8 = new ControlledObject("Target08", 8,
+		target8 = new ControlledObject("Target08", 8,
 				new Variable("selection", true, true, 0, 100, this));
-		ControlledObject target9 = new ControlledObject("Target09", 9,
+		target9 = new ControlledObject("Target09", 9,
 				new Variable("selection", true, true, 0, 100, this));
-		ControlledObject target10 = new ControlledObject("Target10", 10,
+		target10 = new ControlledObject("Target10", 10,
 				new Variable("selection", true, true, 0, 100, this));
 		
-		objects = new HashMap<Integer, ControlledObject>();
+		
 
 //		objects.put(fridge.getId(), fridge);
 		
-		if(test_no == TEST_TARGET) {
-			objects.put(target1.getId(), target1);
-			objects.put(target2.getId(), target2);
-			objects.put(target3.getId(), target3);
-			objects.put(target4.getId(), target4);
-			objects.put(target5.getId(), target5);
-			objects.put(target6.getId(), target6);
-			objects.put(target7.getId(), target7);
-			objects.put(target8.getId(), target8);
-			objects.put(target9.getId(), target9);
-			objects.put(target10.getId(), target10);
-			
-		} else {
+
+	}
+	
+	public void refreshObjects() {
+		
+		objects.clear();
+		room.clear();
+		
+		if(exp_mode == MODE_HOME) {
 			objects.put(fan.getId(), fan);
 			objects.put(music.getId(), music);
 			objects.put(smartTV.getId(), smartTV);
 			objects.put(lamp.getId(), lamp);
+			
+		} else {
+			objects.put(target5.getId(), target5);
+			objects.put(target3.getId(), target3);
+			objects.put(target8.getId(), target8);
+			objects.put(target6.getId(), target6);
+			objects.put(target1.getId(), target1);
+			objects.put(target9.getId(), target9);
+			objects.put(target4.getId(), target4);
+			objects.put(target10.getId(), target10);
+			objects.put(target2.getId(), target2);
+			objects.put(target7.getId(), target7);
+			
+			if(exp_mode == MODE_LIST) {
+				//add all clients to room
+				Iterator<Entry<Integer, ControlledObject>> it = objects.entrySet().iterator();
+			    while (it.hasNext()) {
+			        HashMap.Entry pairs = (HashMap.Entry)it.next();
+			        System.out.println(pairs.getKey() + " = " + pairs.getValue());
+			        Log.d("debugging", "adding object " + pairs.getValue() + " to room" );
+			        addObjectToRoom((Integer) pairs.getKey());
+			        it.remove(); // avoids a ConcurrentModificationException
+			    }
+				
+			}
+			
 		}
 		
-		room = new ArrayList<ControlledObject>();
-		
+		Log.d("debugging", "finishing adding " + objects.size() + " objects");
+		Log.d("debugging", "room size: " + room.size() );
 		
 		
 		if (!connectingToLaptop){
@@ -261,11 +305,10 @@ private int test_no = 2;
 		}
 	}
 	
-
-	
 	public void receive(String message){
 		Log.i("debugging", "received string:  " + message);
-		
+		Log.d("debugging", "objects size: " + objects.size());
+		Log.d("debugging", "level is:" + level);
 		
 		if (level == LIMBO ){
 			//PARSE RESPONSE TO FF000000
@@ -397,11 +440,19 @@ private int test_no = 2;
 		
 		case (SELECTION):
 			Log.i("debugging", "inside switchmode/selection");
-			if (forward){
-				exp_mode = MODE_IR;
-			}
-			else {
-				exp_mode = MODE_LIST;
+			
+//			Log.d("debugging", scroller.toString());
+//			if (forward){
+//				exp_mode = MODE_IR;
+//			}
+//			else {
+//				exp_mode = MODE_LIST;
+//			}
+			Log.d("debugging", "exp_mode: " + exp_mode);
+			if(forward && exp_mode != MODE_HOME) {
+				exp_mode++;
+			} else if(!forward && exp_mode != MODE_IR) {
+				exp_mode--;
 			}
 			resetLayout();
 			break;
@@ -435,11 +486,9 @@ private int test_no = 2;
 			Variable var_sel = getVariable(currentObject, "selection");
 			connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'S', "80"));
 	    
-			//for objects in room, if current object blink fast else blink slow
 			varIndex=0;
 			holder = (LinearLayout) findViewById(R.id.list_holder);
 			for (int i = 0 ; i < room.size(); i ++){
-				//TODO: send corresponding to clients for blinking speed
 				
 				TextView currentText = (TextView) holder.getChildAt(i);
 				if (currentText.getText().equals(currentObject.getName())){
@@ -532,14 +581,24 @@ private int test_no = 2;
 						//LIST MODE
 						TextView listText = (TextView) findViewById(R.id.list_text);
 						TextView irText = (TextView) findViewById(R.id.ir_text);
-						if (exp_mode == MODE_LIST){
-							listText.setTextColor(selectedColor);
-							irText.setTextColor(unSelectedColor);
-							}
-						//IR MODE
-						else {
+						TextView homeText = (TextView) findViewById(R.id.home_text);
+						Log.d("debugging", "change display to mode:" + exp_mode);
+						if(exp_mode == MODE_IR) {
+							
 							listText.setTextColor(unSelectedColor);
 							irText.setTextColor(selectedColor);
+							homeText.setTextColor(unSelectedColor);
+						}
+						else if (exp_mode == MODE_LIST){
+							listText.setTextColor(selectedColor);
+							irText.setTextColor(unSelectedColor);
+							homeText.setTextColor(unSelectedColor);
+						}
+						else {
+							//Home MODE
+							listText.setTextColor(unSelectedColor);
+							irText.setTextColor(unSelectedColor);
+							homeText.setTextColor(selectedColor);
 						}
 						
 						break;
@@ -971,38 +1030,29 @@ private int test_no = 2;
 		switch (level){
 			case (SELECTION):
 			
-			
+				
 				if(exp_mode == MODE_IR) {
 					//tell glass arduino and clients that we are in list mode
 					Log.d("debugging", "sending cmd: exp IR mode");
 					connectionManager.write("00SMOD001\n");
 					level = LIMBO;
-				}else{
+				}else if(exp_mode == MODE_LIST){
 					//MODE LIST
 					Log.d("debugging", "sending cmd: exp list mode");
 					connectionManager.write("00SMOD002\n");
 					level = LIMBO;
 					
-					//add all clients to room
-//					for (Integer key: objects.keySet()){
-//						Log.d("debugging", "adding object " + objects.get(key).getName() + " to room" );
-//						addObjectToRoom(key);
-//					}
-					Iterator it = objects.entrySet().iterator();
-				    while (it.hasNext()) {
-				        HashMap.Entry pairs = (HashMap.Entry)it.next();
-				        System.out.println(pairs.getKey() + " = " + pairs.getValue());
-				        Log.d("debugging", "adding object " + pairs.getValue() + " to room" );
-				        addObjectToRoom((Integer) pairs.getKey());
-				        it.remove(); // avoids a ConcurrentModificationException
-				    }
-					Log.d("debugging", "room size: " + room.size() );
-					
+				}else if(exp_mode == MODE_HOME){
+					Log.d("debugging", "sending cmd: exp HOME mode");
+					connectionManager.write("00SMOD001\n");
+					//TODO: need to add mode 003 and glass should change channel accordingly
+					level = LIMBO;
 				}
+				refreshObjects();
 				break;
 			case (LIMBO):
 				
-				if(exp_mode == MODE_IR) {
+				if(exp_mode == MODE_IR || exp_mode == MODE_HOME) {
 					refreshRoom();
 				} else if(exp_mode == MODE_LIST) {
 					level = ROOM_LEVEL;
@@ -1241,9 +1291,9 @@ private int test_no = 2;
 	    
 	    	break;
 	    case (OBJECT_LEVEL):
-	    	if (exp_mode == MODE_IR) level = LIMBO;
-	    	else  level = ROOM_LEVEL;
-	    	
+//	    	if (exp_mode == MODE_IR) level = LIMBO;
+//	    	else  level = ROOM_LEVEL;
+	    	level = LIMBO;
 	    	//send led off msg to previously connected client
 	    	turnOffLights();
 	    	break;
