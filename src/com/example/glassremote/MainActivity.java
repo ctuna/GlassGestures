@@ -1045,7 +1045,11 @@ private int test_no = 2;
 					currentVariable.setBoolean(!currentVariable.getBoolean());
 					
 				}
-				updateValue();
+				if(exp_mode == MODE_HOME){
+					updateValue();
+					//skip if it's target acquisition test (IR or List)
+				}
+				
 				return false;
 				//level=VARIABLE_LEVEL;
 		
