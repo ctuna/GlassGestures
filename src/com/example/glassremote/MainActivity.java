@@ -214,12 +214,12 @@ ControlledObject target10;
 		fan = new ControlledObject("Fan", 14,
 				new Variable("power", true, false, 0, 100, this),
 				new Variable("selection", true, true, 0, 100, this));
-		music = new ControlledObject("Music", 12,
-				new Variable("music", true, true, 0, 1000, this),
+		music = new ControlledObject("TV", 12,
+				new Variable("video", true, true, 0, 1000, this),
 				new Variable("volume", true, true,0, 100, this),
 				new Variable("selection", true, true, 0, 100, this));
-		smartTV = new ControlledObject("TV", 11,
-				new Variable("video", true, true, 0, 1000, this),
+		smartTV = new ControlledObject("Music", 11,
+				new Variable("music", true, true, 0, 1000, this),
 				new Variable("volume", true, true,0, 100, this),
 				new Variable("selection", true, true, 0, 100, this));
 		lamp = new ControlledObject("Lamp", 13,
