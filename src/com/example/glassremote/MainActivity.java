@@ -212,7 +212,7 @@ ControlledObject target10;
 		//DECLARE OBJECTS
 
 		fan = new ControlledObject("Fan", 14,
-				new Variable("brightness", true, false, 0, 100, this),
+				new Variable("power", true, false, 0, 100, this),
 				new Variable("selection", true, true, 0, 100, this));
 		music = new ControlledObject("Music", 12,
 				new Variable("music", true, true, 0, 1000, this),
@@ -223,28 +223,28 @@ ControlledObject target10;
 				new Variable("volume", true, true,0, 100, this),
 				new Variable("selection", true, true, 0, 100, this));
 		lamp = new ControlledObject("Lamp", 13,
-				new Variable("brightness", true, false, 0, 100, this),
+				new Variable("power", true, false, 0, 100, this),
 				new Variable("selection", true, true, 0, 100, this));
 		
-		target1 = new ControlledObject("Target01", 1,
+		target1 = new ControlledObject("G", 1,
 				new Variable("selection", true, true, 0, 100, this));
-		target2 = new ControlledObject("Target02", 2,
+		target2 = new ControlledObject("O", 2,
 				new Variable("selection", true, true, 0, 100, this));
-		target3 = new ControlledObject("Target03", 3,
+		target3 = new ControlledObject("W", 3,
 				new Variable("selection", true, true, 0, 100, this));
-		target4 = new ControlledObject("Target04", 4,
+		target4 = new ControlledObject("F", 4,
 				new Variable("selection", true, true, 0, 100, this));
-		target5 = new ControlledObject("Target05", 5,
+		target5 = new ControlledObject("J", 5,
 				new Variable("selection", true, true, 0, 100, this));
-		target6 = new ControlledObject("Target06", 6,
+		target6 = new ControlledObject("S", 6,
 				new Variable("selection", true, true, 0, 100, this));
-		target7 = new ControlledObject("Target07", 7,
+		target7 = new ControlledObject("Y", 7,
 				new Variable("selection", true, true, 0, 100, this));
-		target8 = new ControlledObject("Target08", 8,
+		target8 = new ControlledObject("R", 8,
 				new Variable("selection", true, true, 0, 100, this));
-		target9 = new ControlledObject("Target09", 9,
+		target9 = new ControlledObject("A", 9,
 				new Variable("selection", true, true, 0, 100, this));
-		target10 = new ControlledObject("Target10", 10,
+		target10 = new ControlledObject("M", 10,
 				new Variable("selection", true, true, 0, 100, this));
 		
 		
@@ -266,28 +266,39 @@ ControlledObject target10;
 			objects.put(lamp.getId(), lamp);
 			
 		} else {
-			objects.put(target5.getId(), target5);
-			objects.put(target3.getId(), target3);
-			objects.put(target8.getId(), target8);
-			objects.put(target6.getId(), target6);
-			objects.put(target1.getId(), target1);
 			objects.put(target9.getId(), target9);
 			objects.put(target4.getId(), target4);
+			objects.put(target1.getId(), target1);
+			objects.put(target5.getId(), target5);
 			objects.put(target10.getId(), target10);
 			objects.put(target2.getId(), target2);
+			objects.put(target8.getId(), target8);
+			objects.put(target6.getId(), target6);
+			objects.put(target3.getId(), target3);
 			objects.put(target7.getId(), target7);
 			
 			if(exp_mode == MODE_LIST) {
 				//add all clients to room
-				Iterator<Entry<Integer, ControlledObject>> it = objects.entrySet().iterator();
-			    while (it.hasNext()) {
-			        HashMap.Entry pairs = (HashMap.Entry)it.next();
-			        System.out.println(pairs.getKey() + " = " + pairs.getValue());
-			        Log.d("debugging", "adding object " + pairs.getValue() + " to room" );
-			        addObjectToRoom((Integer) pairs.getKey());
-			        it.remove(); // avoids a ConcurrentModificationException
-			    }
+//				Iterator<Entry<Integer, ControlledObject>> it = objects.entrySet().iterator();
+//			    while (it.hasNext()) {
+//			        HashMap.Entry pairs = (HashMap.Entry)it.next();
+//			        System.out.println(pairs.getKey() + " = " + pairs.getValue());
+//			        Log.d("debugging", "adding object " + pairs.getValue() + " to room" );
+//			        addObjectToRoom((Integer) pairs.getKey());
+//			        it.remove(); // avoids a ConcurrentModificationException
+//			    }
 				
+				//using alphabetic order instead of id (numeric)
+				addObjectToRoom(9);
+				addObjectToRoom(4);
+				addObjectToRoom(1);
+				addObjectToRoom(5);
+				addObjectToRoom(10);
+				addObjectToRoom(2);
+				addObjectToRoom(8);
+				addObjectToRoom(6);
+				addObjectToRoom(3);
+				addObjectToRoom(7);
 			}
 			
 		}
@@ -464,15 +475,18 @@ ControlledObject target10;
 			if (forward && objectIndex != length - 1) 
 				{
 				objectIndex++;
-				if (flingRight > 1){
+//				if (flingRight > 1){
+				if (objectIndex > 4){
 					flingRight = 0;
 					scroller.pageScroll(ScrollView.FOCUS_RIGHT);
+					
 				}
 				
 				}
 			else if (!forward && objectIndex != 0) {
 				objectIndex--;	
-				if (flingLeft > 1){
+//				if (flingLeft > 1){
+				if (objectIndex < 5){
 					scroller.pageScroll(ScrollView.FOCUS_LEFT);
 					flingLeft = 0;
 				}
@@ -504,45 +518,48 @@ ControlledObject target10;
 			
 			break;
 		case (OBJECT_LEVEL):
-			scroller = (HorizontalScrollView)findViewById (R.id.scroller);
-			length = currentObject.getVariables().size();
-			//- 2 SO LED IS HIDDEN
-			if (forward && varIndex != length - 2) {
-				varIndex++;
-				if (flingRight > 1){
-					flingRight = 0;
-					scroller.pageScroll(ScrollView.FOCUS_RIGHT);
-				}
-				
-				
-			}
-			else if (!forward && varIndex != 0) {
-				varIndex--;
-				if (flingLeft > 1){
-					scroller.pageScroll(ScrollView.FOCUS_LEFT);
-					flingLeft = 0;
-				}
-				
-			}
-			currentVariable = currentObject.getVariables().get(varIndex);
+			if(exp_mode == MODE_HOME) {
+				//no object level switch in IR and List mode
 			
-			holder = (LinearLayout) findViewById(R.id.list_holder);
-			for (int i = 0 ; i < currentObject.getVariables().size()-1; i ++){
-				LinearLayout current = (LinearLayout) holder.getChildAt(i);
+				scroller = (HorizontalScrollView)findViewById (R.id.scroller);
+				length = currentObject.getVariables().size();
+				//- 2 SO LED IS HIDDEN
+				if (forward && varIndex != length - 2) {
+					varIndex++;
+					if (flingRight > 1){
+						flingRight = 0;
+						scroller.pageScroll(ScrollView.FOCUS_RIGHT);
+					}
+					
+					
+				}
+				else if (!forward && varIndex != 0) {
+					varIndex--;
+					if (flingLeft > 1){
+						scroller.pageScroll(ScrollView.FOCUS_LEFT);
+						flingLeft = 0;
+					}
+					
+				}
+				currentVariable = currentObject.getVariables().get(varIndex);
 				
-				TextView currentText = (TextView) current.getChildAt(0);
-				if (currentText.getText().equals(currentVariable.getName())){
-					currentText.setTextColor(selectedColor);
-					current.setAlpha(1f);
-					currentVariableLayout = current;
+				holder = (LinearLayout) findViewById(R.id.list_holder);
+				for (int i = 0 ; i < currentObject.getVariables().size()-1; i ++){
+					LinearLayout current = (LinearLayout) holder.getChildAt(i);
+					
+					TextView currentText = (TextView) current.getChildAt(0);
+					if (currentText.getText().equals(currentVariable.getName())){
+						currentText.setTextColor(selectedColor);
+						current.setAlpha(1f);
+						currentVariableLayout = current;
+					}
+					else {
+						currentText.setTextColor(unSelectedColor);
+						current.setAlpha(outOfFocus);
+					}
 				}
-				else {
-					currentText.setTextColor(unSelectedColor);
-					current.setAlpha(outOfFocus);
-				}
+			
 			}
-			
-			
 	
 		//resetLayout();
 	}
@@ -613,8 +630,9 @@ ControlledObject target10;
 							t= new TextView(context);
 							currentName = ob.getName();
 							t.setText(currentName);
+							t.setId(ob.getId());
 							t.setTextSize(textSize);
-							t.setPadding(0,  0 , 20, 0);
+							t.setPadding(0,  0 , 60, 0);
 							if (currentName.equals(currentObject.getName())) {
 								t.setTextColor(selectedColor);
 								t.setAlpha(1f);
