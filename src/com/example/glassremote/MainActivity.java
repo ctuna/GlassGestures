@@ -35,7 +35,7 @@ public boolean connectingToLaptop = true;
 
 //NAVIGATION CONTROL
 //TWO NAVIGATES = TRUE means switching with 2 fingers, scrolling with 1 
-public boolean twoNavigates = true;
+public boolean twoNavigates = false;
 int fingersToNavigate;
 int fingersToScroll;
 int fingersToToggle;
@@ -92,7 +92,7 @@ private final int MODE_IR = 1;		//get clients who received IR signal
 private final int MODE_LIST = 2;	//get all clients and shown in list
 private final int MODE_HOME = 3;	//smart home scenario
 private int exp_mode = MODE_IR;
-
+private boolean double_clients = false;
 
 
 
@@ -112,6 +112,17 @@ ControlledObject target8;
 ControlledObject target9;
 ControlledObject target10;
 
+//*** 2nd pair
+ControlledObject target11;
+ControlledObject target12;
+ControlledObject target13;
+ControlledObject target14;
+ControlledObject target15;
+ControlledObject target16;
+ControlledObject target17;
+ControlledObject target18;
+ControlledObject target19;
+ControlledObject target20;
 
 @Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -188,9 +199,13 @@ ControlledObject target10;
 	
 	@Override
 	protected void onDestroy(){
+		//try{
 //			turnOffLights();
 			connectionManager.destroy();
 			super.onStop();
+	//	}
+		//catch 
+		
 	}
 	//GESTURES
     
@@ -214,11 +229,11 @@ ControlledObject target10;
 		fan = new ControlledObject("Fan", 14,
 				new Variable("power", true, false, 0, 100, this),
 				new Variable("selection", true, true, 0, 100, this));
-		music = new ControlledObject("TV", 12,
+		smartTV = new ControlledObject("TV", 12,
 				new Variable("video", true, true, 0, 1000, this),
 				new Variable("volume", true, true,0, 100, this),
 				new Variable("selection", true, true, 0, 100, this));
-		smartTV = new ControlledObject("Music", 11,
+		music = new ControlledObject("Music", 11,
 				new Variable("music", true, true, 0, 1000, this),
 				new Variable("volume", true, true,0, 100, this),
 				new Variable("selection", true, true, 0, 100, this));
@@ -246,6 +261,31 @@ ControlledObject target10;
 				new Variable("selection", true, true, 0, 100, this));
 		target10 = new ControlledObject("M", 10,
 				new Variable("selection", true, true, 0, 100, this));
+		
+		//*** 2nd pair
+		if(double_clients){
+			target11 = new ControlledObject("G", 11,
+					new Variable("selection", true, true, 0, 100, this));
+			target12 = new ControlledObject("O", 12,
+					new Variable("selection", true, true, 0, 100, this));
+			target13 = new ControlledObject("W", 13,
+					new Variable("selection", true, true, 0, 100, this));
+			target14 = new ControlledObject("F", 14,
+					new Variable("selection", true, true, 0, 100, this));
+			target15 = new ControlledObject("J", 15,
+					new Variable("selection", true, true, 0, 100, this));
+			target16 = new ControlledObject("S", 16,
+					new Variable("selection", true, true, 0, 100, this));
+			target17 = new ControlledObject("Y", 17,
+					new Variable("selection", true, true, 0, 100, this));
+			target18 = new ControlledObject("R", 18,
+					new Variable("selection", true, true, 0, 100, this));
+			target19 = new ControlledObject("A", 19,
+					new Variable("selection", true, true, 0, 100, this));
+			target20 = new ControlledObject("M", 20,
+					new Variable("selection", true, true, 0, 100, this));
+		}
+		
 		
 		
 
@@ -277,6 +317,21 @@ ControlledObject target10;
 			objects.put(target3.getId(), target3);
 			objects.put(target7.getId(), target7);
 			
+			//*** 2nd pair
+			if(double_clients){
+				objects.put(target19.getId(), target19);
+				objects.put(target14.getId(), target14);
+				objects.put(target11.getId(), target11);
+				objects.put(target15.getId(), target15);
+				objects.put(target20.getId(), target20);
+				objects.put(target12.getId(), target12);
+				objects.put(target18.getId(), target18);
+				objects.put(target16.getId(), target16);
+				objects.put(target13.getId(), target13);
+				objects.put(target17.getId(), target17);
+			}
+			
+			
 			if(exp_mode == MODE_LIST) {
 				//add all clients to room
 //				Iterator<Entry<Integer, ControlledObject>> it = objects.entrySet().iterator();
@@ -299,6 +354,21 @@ ControlledObject target10;
 				addObjectToRoom(6);
 				addObjectToRoom(3);
 				addObjectToRoom(7);
+				
+				//*** 2nd pair
+				if(double_clients){
+					addObjectToRoom(19);
+					addObjectToRoom(14);
+					addObjectToRoom(11);
+					addObjectToRoom(15);
+					addObjectToRoom(20);
+					addObjectToRoom(12);
+					addObjectToRoom(18);
+					addObjectToRoom(16);
+					addObjectToRoom(13);
+					addObjectToRoom(17);					
+				}
+
 			}
 			
 		}
@@ -476,7 +546,7 @@ ControlledObject target10;
 				{
 				objectIndex++;
 //				if (flingRight > 1){
-				if (objectIndex > 4){
+				if (objectIndex == 6){
 					flingRight = 0;
 					scroller.pageScroll(ScrollView.FOCUS_RIGHT);
 					
@@ -486,7 +556,7 @@ ControlledObject target10;
 			else if (!forward && objectIndex != 0) {
 				objectIndex--;	
 //				if (flingLeft > 1){
-				if (objectIndex < 5){
+				if (objectIndex == 4){
 					scroller.pageScroll(ScrollView.FOCUS_LEFT);
 					flingLeft = 0;
 				}
@@ -681,7 +751,7 @@ ControlledObject target10;
 							LinearLayout relative = new LinearLayout(context);
 						
 							if (v.hasContinuous()){
-								if (v.getName().equals("video")){
+								if (v.getName().equals("video") || v.getName().equals("music")){
 									relative.setOrientation(LinearLayout.HORIZONTAL);
 									//VIDEO CASE
 									//DEFAULT TO PAUSED FIRST
@@ -786,7 +856,7 @@ ControlledObject target10;
 		if (level == OBJECT_LEVEL){
 			LinearLayout rel = (LinearLayout) currentVariableLayout.getChildAt(1);
 			
-			if (!currentVariable.getName().equals("video")){
+			if (!currentVariable.getName().equals("video") && !currentVariable.getName().equals("music")){
 					if (currentVariable.hasContinuous()) variableProgressBar = (ProgressBar) rel.getChildAt(0);	
 					else variableCheckBox = (CheckBox) rel.getChildAt(0);
 					}
@@ -794,7 +864,7 @@ ControlledObject target10;
 		if (level == OBJECT_LEVEL)
 			{
 			String currentValue = currentVariable.getCurrentValue();
-			if (currentVariable.getName().equals("video")){
+			if (currentVariable.getName().equals("video")|| currentVariable.getName().equals("music")){
 				runOnUiThread(new Runnable() {
 				     public void run() {
 			
@@ -1172,7 +1242,7 @@ ControlledObject target10;
 				Log.i("var", "turning it down");
 				//TODO: TURN IT DOWN
 				if (currentVariable.hasContinuous()){
-					if (currentVariable.getName().equals("video")){
+					if (currentVariable.getName().equals("video") || currentVariable.getName().equals("music")){
 						updateValue(false);
 					}
 					else {
@@ -1191,7 +1261,7 @@ ControlledObject target10;
 				Log.i("var", "turning it up");
 				//TODO: TURN IT UP
 				if (currentVariable.hasContinuous()){ 
-					if (currentVariable.getName().equals("video")){
+					if (currentVariable.getName().equals("video")|| currentVariable.getName().equals("music")){
 						updateValue(true);
 					}
 					else {
@@ -1338,11 +1408,11 @@ ControlledObject target10;
 		//ONLY IF DONE CONNCETING/DONT SEND ERROR
 		if (level != SELECTION){
 		
-		if (numFingers == fingersToToggle && !currentVariable.getName().equals("video")){
+		if (numFingers == fingersToToggle && !currentVariable.getName().equals("video") && !currentVariable.getName().equals("music")){
 			
 			updateValue();
 		}
-		if (numFingers == fingersToToggle && currentVariable.getName().equals("video")){
+		if (numFingers == fingersToToggle && (currentVariable.getName().equals("video") || currentVariable.getName().equals("music"))){
 			runOnUiThread(new Runnable() {
 			     public void run() {
 			    	 fastForwardButton.setAlpha(.4f);
