@@ -1415,9 +1415,10 @@ ControlledObject target20;
 			
 			updateValue();
 		}
-		try{
+		try{	
+			if (currentObject.getName().equals("TV")){
 			runOnUiThread(new Runnable() {
-			
+		
 			     public void run() {
 			    	 Log.i("debugging", "in where i want to be");
 			    	 if (fastForwardButton !=null){
@@ -1427,7 +1428,7 @@ ControlledObject target20;
 			     }
 			});
 		}
-		
+		}
 		catch (NullPointerException e){
 			e.printStackTrace();
 		}
