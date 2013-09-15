@@ -149,7 +149,7 @@ public class MultiTouchDetector implements GestureDetector.OnGestureListener {
 				
 			}
 			Log.i("debugging", " tap done at : " + Calendar.getInstance().getTimeInMillis());
-	
+			listener.onScrollEnded(numFingers);
 			if (!hasFingersDown()){
 
 				//MAKE SURE FINGERS STAY OFF FOR A FEW MILIS

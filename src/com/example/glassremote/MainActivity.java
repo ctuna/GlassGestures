@@ -1,6 +1,7 @@
 package com.example.glassremote;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -31,7 +32,7 @@ GestureDetector gestureDetector;
 GestureDetector.OnDoubleTapListener doubleGestureDetector;
 
 
-public boolean connectingToLaptop = true;
+public boolean connectingToLaptop = false;
 
 //NAVIGATION CONTROL
 //TWO NAVIGATES = TRUE means switching with 2 fingers, scrolling with 1 
@@ -996,7 +997,7 @@ ControlledObject target20;
 		//FORMAT MESSAGE
 		
 		}
-	
+
 	public void updateValue(boolean increase){
 		//VIDEO CASE 
 		ProgressBar valueOfVariable = null;
@@ -1016,9 +1017,10 @@ ControlledObject target20;
 					
 					runOnUiThread(new Runnable() {
 					     public void run() {
+					    	 long startTime = Calendar.getInstance().getTimeInMillis();
 					    	 rewindButton.setAlpha(.4f);
-					    	 fastForwardButton.setAlpha(1f);
-					    	 Log.i("debugging", "setting alpha");
+							fastForwardButton.setAlpha(1f);
+					    	
 					     }
 					});
 					}
@@ -1405,6 +1407,7 @@ ControlledObject target20;
 
 	@Override
 	public void onScrollEnded(int numFingers) {
+		Log.i("debugging", "in on scroll ended");
 		//ONLY IF DONE CONNCETING/DONT SEND ERROR
 		if (level != SELECTION){
 		
@@ -1412,13 +1415,21 @@ ControlledObject target20;
 			
 			updateValue();
 		}
-		if (numFingers == fingersToToggle && (currentVariable.getName().equals("video") || currentVariable.getName().equals("music"))){
+		try{
 			runOnUiThread(new Runnable() {
+			
 			     public void run() {
+			    	 Log.i("debugging", "in where i want to be");
+			    	 if (fastForwardButton !=null){
+			    		
 			    	 fastForwardButton.setAlpha(.4f);
-			    	 rewindButton.setAlpha(.4f);
+			    	 rewindButton.setAlpha(.4f);}
 			     }
 			});
+		}
+		
+		catch (NullPointerException e){
+			e.printStackTrace();
 		}
 		}
 		// TODO Auto-generated method stub
