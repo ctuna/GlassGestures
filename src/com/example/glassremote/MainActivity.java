@@ -32,7 +32,7 @@ GestureDetector gestureDetector;
 GestureDetector.OnDoubleTapListener doubleGestureDetector;
 
 
-public boolean connectingToLaptop = false;
+public boolean connectingToLaptop = true;
 
 //NAVIGATION CONTROL
 //TWO NAVIGATES = TRUE means switching with 2 fingers, scrolling with 1 
@@ -201,7 +201,7 @@ ControlledObject target20;
 	@Override
 	protected void onDestroy(){
 		//try{
-//			turnOffLights();
+			turnOffLights();
 			connectionManager.destroy();
 			super.onStop();
 	//	}
@@ -234,19 +234,19 @@ ControlledObject target20;
 				new Variable("video", true, true, 0, 1000, this),
 				new Variable("volume", true, true,0, 100, this),
 				new Variable("selection", true, true, 0, 100, this));
-		music = new ControlledObject("Music", 11,
-				new Variable("music", true, true, 0, 1000, this),
-				new Variable("volume", true, true,0, 100, this),
-				new Variable("selection", true, true, 0, 100, this));
-		lamp = new ControlledObject("Lamp", 13,
+//		music = new ControlledObject("Music", 11,
+//				new Variable("music", true, true, 0, 1000, this),
+//				new Variable("volume", true, true,0, 100, this),
+//				new Variable("selection", true, true, 0, 100, this));
+		lamp = new ControlledObject("Lamp", 11,
 				new Variable("power", true, false, 0, 100, this),
 				new Variable("selection", true, true, 0, 100, this));
 		
-		target1 = new ControlledObject("G", 1,
+		target1 = new ControlledObject("01", 1,
 				new Variable("selection", true, true, 0, 100, this));
-		target2 = new ControlledObject("O", 2,
+		target2 = new ControlledObject("02", 2,
 				new Variable("selection", true, true, 0, 100, this));
-		target3 = new ControlledObject("W", 3,
+		target3 = new ControlledObject("03", 3,
 				new Variable("selection", true, true, 0, 100, this));
 		target4 = new ControlledObject("F", 4,
 				new Variable("selection", true, true, 0, 100, this));
@@ -302,7 +302,7 @@ ControlledObject target20;
 		
 		if(exp_mode == MODE_HOME) {
 			objects.put(fan.getId(), fan);
-			objects.put(music.getId(), music);
+//			objects.put(music.getId(), music);
 			objects.put(smartTV.getId(), smartTV);
 			objects.put(lamp.getId(), lamp);
 			
@@ -1409,25 +1409,25 @@ ControlledObject target20;
 	public void onScrollEnded(int numFingers) {
 		Log.i("debugging", "in on scroll ended");
 		//ONLY IF DONE CONNCETING/DONT SEND ERROR
-		if (level != SELECTION){
+		if (exp_mode == MODE_HOME && level == OBJECT_LEVEL){
 		
-		if (numFingers == fingersToToggle && !currentVariable.getName().equals("video") && !currentVariable.getName().equals("music")){
+			if (numFingers == fingersToToggle && !currentVariable.getName().equals("video") && !currentVariable.getName().equals("music")){
+				
+				updateValue();
+			}
+			try{	
+				if (currentObject.getName().equals("TV")){
+				runOnUiThread(new Runnable() {
 			
-			updateValue();
-		}
-		try{	
-			if (currentObject.getName().equals("TV")){
-			runOnUiThread(new Runnable() {
-		
-			     public void run() {
-			    	 Log.i("debugging", "in where i want to be");
-			    	 if (fastForwardButton !=null){
-			    		
-			    	 fastForwardButton.setAlpha(.4f);
-			    	 rewindButton.setAlpha(.4f);}
-			     }
-			});
-		}
+				     public void run() {
+				    	 Log.i("debugging", "in where i want to be");
+				    	 if (fastForwardButton !=null){
+				    		
+				    	 fastForwardButton.setAlpha(.4f);
+				    	 rewindButton.setAlpha(.4f);}
+				     }
+				});
+			}
 		}
 		catch (NullPointerException e){
 			e.printStackTrace();
