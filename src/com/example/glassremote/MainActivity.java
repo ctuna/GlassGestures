@@ -734,7 +734,7 @@ ControlledObject target20;
 						views.clear();
 						//POPULATE DEVICES
 						for (Variable v : currentObject.getVariables()){
-							if (!v.getName().equals("selection")){
+						
 							LinearLayout l = new LinearLayout(context);
 							l.setOrientation(LinearLayout.VERTICAL);
 							LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
@@ -791,7 +791,7 @@ ControlledObject target20;
 									relative.addView(rewindButton);
 									relative.addView(fastForwardButton);
 									}
-								}
+								
 									
 								else{
 									
@@ -824,6 +824,7 @@ ControlledObject target20;
 								else progressBar.setProgress(Integer.parseInt(currentValue));
 								}
 							}
+							
 							else {
 								//DOES NOT HAVE CONTINUOUS, ONLY HAS BOOLEAN
 								CheckBox checkBox = new CheckBox(context);
@@ -862,8 +863,9 @@ ControlledObject target20;
 		     
 		     }
 		});
+
 		
-	}	
+		
     
 	public boolean isConnectingToLaptop(){
 		return connectingToLaptop;
