@@ -101,6 +101,7 @@ ControlledObject fan;
 ControlledObject smartTV;
 ControlledObject lamp;
 ControlledObject music;
+ControlledObject slide;
 
 ControlledObject target1;
 ControlledObject target2;
@@ -230,10 +231,10 @@ ControlledObject target20;
 		fan = new ControlledObject("Fan", 14,
 				new Variable("power", true, false, 0, 100, this),
 				new Variable("selection", true, true, 0, 100, this));
-		smartTV = new ControlledObject("TV", 12,
+		/**smartTV = new ControlledObject("TV", 12,
 				new Variable("video", true, true, 0, 1000, this),
 				new Variable("volume", true, true,0, 100, this),
-				new Variable("selection", true, true, 0, 100, this));
+				new Variable("selection", true, true, 0, 100, this));*/
 //		music = new ControlledObject("Music", 11,
 //				new Variable("music", true, true, 0, 1000, this),
 //				new Variable("volume", true, true,0, 100, this),
@@ -241,6 +242,10 @@ ControlledObject target20;
 		lamp = new ControlledObject("Lamp", 11,
 				new Variable("power", true, false, 0, 100, this),
 				new Variable("selection", true, true, 0, 100, this));
+		slide = new ControlledObject("Slide", 12,
+				new Variable("position", true, true, 0, 100, this),
+				new Variable("selection", true, true, 0, 100, this));
+		
 		
 		target1 = new ControlledObject("01", 1,
 				new Variable("selection", true, true, 0, 100, this));
@@ -303,7 +308,7 @@ ControlledObject target20;
 		if(exp_mode == MODE_HOME) {
 			objects.put(fan.getId(), fan);
 //			objects.put(music.getId(), music);
-			objects.put(smartTV.getId(), smartTV);
+			objects.put(slide.getId(), slide);
 			objects.put(lamp.getId(), lamp);
 			
 		} else {
@@ -772,6 +777,22 @@ ControlledObject target20;
 									relative.addView(toggleButton);
 									relative.addView(fastForwardButton);
 									}
+								else if (v.getName().equals("position")){
+										relative.setOrientation(LinearLayout.HORIZONTAL);
+									//VIDEO CASE
+									//DEFAULT TO PAUSED FIRST
+									v.setBoolean(false);
+									rewindButton = new ImageView(context);
+									rewindButton.setImageDrawable(getResources().getDrawable(R.drawable.rewindsmall));
+									fastForwardButton = new ImageView(context);
+									fastForwardButton.setAlpha(.4f);
+									rewindButton.setAlpha(.4f);
+									fastForwardButton.setImageDrawable(getResources().getDrawable(R.drawable.fastforwardsmall));
+									relative.addView(rewindButton);
+									relative.addView(fastForwardButton);
+									}
+								}
+									
 								else{
 									
 								
@@ -857,7 +878,7 @@ ControlledObject target20;
 		if (level == OBJECT_LEVEL){
 			LinearLayout rel = (LinearLayout) currentVariableLayout.getChildAt(1);
 			
-			if (!currentVariable.getName().equals("video") && !currentVariable.getName().equals("music")){
+			if (!currentVariable.getName().equals("video") && !currentVariable.getName().equals("music")&& !currentVariable.getName().equals("slide")){
 					if (currentVariable.hasContinuous()) variableProgressBar = (ProgressBar) rel.getChildAt(0);	
 					else variableCheckBox = (CheckBox) rel.getChildAt(0);
 					}
@@ -865,15 +886,15 @@ ControlledObject target20;
 		if (level == OBJECT_LEVEL)
 			{
 			String currentValue = currentVariable.getCurrentValue();
-			if (currentVariable.getName().equals("video")|| currentVariable.getName().equals("music")){
+			if (currentVariable.getName().equals("video")|| currentVariable.getName().equals("music")|| currentVariable.getName().equals("slide")){
 				runOnUiThread(new Runnable() {
 				     public void run() {
-			
-				    	 if (!currentVariable.getBoolean()){
-				    		 toggleButton.setImageDrawable(getResources().getDrawable((R.drawable.playsmall)));
-				    		
-				    	 }
-				    	 else toggleButton.setImageDrawable(getResources().getDrawable((R.drawable.pausesmall)));
+					if (!currentVariable.getName().equals("slide")){
+				    		 if (!currentVariable.getBoolean()){
+				    		 	toggleButton.setImageDrawable(getResources().getDrawable((R.drawable.playsmall)));
+				    	 		}
+						else toggleButton.setImageDrawable(getResources().getDrawable((R.drawable.pausesmall)));
+				     }
 				     }
 				});
 				if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
@@ -1235,10 +1256,10 @@ ControlledObject target20;
 			float distanceY, int numFingers) {
 		int newVal;
 		int oldVal;
-	if (numFingers ==fingersToScroll ){
+	if (numFingers ==fingersToScroll){
 		if (distanceY>-10){
 			//GET RID OF FALSE ALARM FROM DOWN STROKE
-		if (level ==OBJECT_LEVEL){
+		if (level ==OBJECT_LEVEL && !currentVariable.getName().equals("position")){
 			
 			if (distanceX > 0){
 				Log.i("var", "turning it down");
@@ -1364,6 +1385,21 @@ ControlledObject target20;
 			//TODO: CHANGE MODE
 			}
 		}
+		else if (numFingers == fingersToScroll && level == OBJECT_LEVEL && currentVariable.getName().equals("position")){
+			//POSITION PRESS FORWARD
+				//forward
+				if (velocityX>0){
+					updateValue(true);
+					
+				}
+				//backward
+				else {
+					updateValue(false);
+					
+				}
+			
+		}
+		
 	}
 
 		
@@ -1411,7 +1447,7 @@ ControlledObject target20;
 		//ONLY IF DONE CONNCETING/DONT SEND ERROR
 		if (exp_mode == MODE_HOME && level == OBJECT_LEVEL){
 		
-			if (numFingers == fingersToToggle && !currentVariable.getName().equals("video") && !currentVariable.getName().equals("music")){
+			if (numFingers == fingersToToggle && !currentVariable.getName().equals("video") && !currentVariable.getName().equals("position") && !currentVariable.getName().equals("music")){
 				
 				updateValue();
 			}
@@ -1425,6 +1461,21 @@ ControlledObject target20;
 				    		
 				    	 fastForwardButton.setAlpha(.4f);
 				    	 rewindButton.setAlpha(.4f);}
+				     }
+				});
+			}
+		}
+		catch (NullPointerException e){
+			e.printStackTrace();
+		}
+		try{	
+			if (currentObject.getName().equals("Slide")){
+				runOnUiThread(new Runnable() {
+			
+					public void run() {
+				    	 	if (fastForwardButton !=null && rewindButton !=null){
+				    	 		fastForwardButton.setAlpha(.4f);
+				    			 rewindButton.setAlpha(.4f);}
 				     }
 				});
 			}
