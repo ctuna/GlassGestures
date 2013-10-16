@@ -1,4 +1,4 @@
-package com.example.glassremote;
+
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -25,7 +25,6 @@ import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
 
 public class MainActivity extends Activity implements GestureDetector.OnGestureListener, MultiTouchListener{
 GestureDetector gestureDetector;
@@ -139,18 +138,18 @@ ControlledObject target20;
 
 				connectionManager.start();
 		}
-		
-		
+
+
 		initializeObjects();
-		
-		
+
+
 		//see if an error happens, if so take out reset layout
 		resetLayout();
 		gestureDetector = new GestureDetector(this, this);
 		selectedColor = getResources().getColor(color.holo_blue_dark);
 		fadedColor = getResources().getColor(R.color.white_transparent);
 		outOfFocus=.5f;
-		
+
 		/**
 		if(exp_mode == MODE_IR) {
 			//tell glass arduino and clients that we are in list mode
@@ -185,7 +184,7 @@ ControlledObject target20;
 				break;
 		}
 	}
-	
+
 	public void setupNavigation(){
 		if (twoNavigates){
 			fingersToNavigate=2;
@@ -198,7 +197,7 @@ ControlledObject target20;
 			fingersToToggle=1;
 		}
 	}
-	
+
 	@Override
 	protected void onDestroy(){
 		//try{
@@ -207,7 +206,7 @@ ControlledObject target20;
 			super.onStop();
 	//	}
 		//catch 
-		
+
 	}
 	//GESTURES
     
@@ -221,9 +220,9 @@ ControlledObject target20;
 				scroll position (continuous)
 				text size (continuous)
      */
-	
+
 	public void initializeObjects(){
-		
+
 		room = new ArrayList<ControlledObject>();
 		objects = new HashMap<Integer, ControlledObject>();
 		//DECLARE OBJECTS
@@ -245,8 +244,8 @@ ControlledObject target20;
 		slide = new ControlledObject("Slide", 12,
 				new Variable("position", true, true, 0, 100, this),
 				new Variable("selection", true, true, 0, 100, this));
-		
-		
+
+
 		target1 = new ControlledObject("01", 1,
 				new Variable("selection", true, true, 0, 100, this));
 		target2 = new ControlledObject("02", 2,
@@ -267,7 +266,7 @@ ControlledObject target20;
 				new Variable("selection", true, true, 0, 100, this));
 		target10 = new ControlledObject("M", 10,
 				new Variable("selection", true, true, 0, 100, this));
-		
+
 		//*** 2nd pair
 		if(double_clients){
 			target11 = new ControlledObject("G", 11,
@@ -291,26 +290,26 @@ ControlledObject target20;
 			target20 = new ControlledObject("M", 20,
 					new Variable("selection", true, true, 0, 100, this));
 		}
-		
-		
-		
+
+
+
 
 //		objects.put(fridge.getId(), fridge);
-		
+
 
 	}
-	
+
 	public void refreshObjects() {
-		
+
 		objects.clear();
 		room.clear();
-		
+
 		if(exp_mode == MODE_HOME) {
 			objects.put(fan.getId(), fan);
 //			objects.put(music.getId(), music);
 			objects.put(slide.getId(), slide);
 			objects.put(lamp.getId(), lamp);
-			
+
 		} else {
 			objects.put(target9.getId(), target9);
 			objects.put(target4.getId(), target4);
@@ -322,7 +321,7 @@ ControlledObject target20;
 			objects.put(target6.getId(), target6);
 			objects.put(target3.getId(), target3);
 			objects.put(target7.getId(), target7);
-			
+
 			//*** 2nd pair
 			if(double_clients){
 				objects.put(target19.getId(), target19);
@@ -336,8 +335,8 @@ ControlledObject target20;
 				objects.put(target13.getId(), target13);
 				objects.put(target17.getId(), target17);
 			}
-			
-			
+
+
 			if(exp_mode == MODE_LIST) {
 				//add all clients to room
 //				Iterator<Entry<Integer, ControlledObject>> it = objects.entrySet().iterator();
@@ -348,7 +347,7 @@ ControlledObject target20;
 //			        addObjectToRoom((Integer) pairs.getKey());
 //			        it.remove(); // avoids a ConcurrentModificationException
 //			    }
-				
+
 				//using alphabetic order instead of id (numeric)
 				addObjectToRoom(9);
 				addObjectToRoom(4);
@@ -360,7 +359,7 @@ ControlledObject target20;
 				addObjectToRoom(6);
 				addObjectToRoom(3);
 				addObjectToRoom(7);
-				
+
 				//*** 2nd pair
 				if(double_clients){
 					addObjectToRoom(19);
@@ -376,13 +375,13 @@ ControlledObject target20;
 				}
 
 			}
-			
+
 		}
-		
+
 		Log.d("debugging", "finishing adding " + objects.size() + " objects");
 		Log.d("debugging", "room size: " + room.size() );
-		
-		
+
+
 		if (!connectingToLaptop){
 		//ADD DUMMY OBJECTS
 			room.add(smartTV);
@@ -391,18 +390,18 @@ ControlledObject target20;
 //			currentVariable = laptop.getVariables().get(varIndex);
 		}
 	}
-	
+
 	public void receive(String message){
 		Log.i("debugging", "received string:  " + message);
 		Log.d("debugging", "objects size: " + objects.size());
 		Log.d("debugging", "level is:" + level);
-		
+
 		if (level == LIMBO ){
 			//PARSE RESPONSE TO FF000000
 			String currentSubstring= message;
 			String nextSubstring="";
 			String[] halves = new String[2];
-			
+
 			Log.d("debugging", "string length:"+currentSubstring.length());
 			while (currentSubstring.length()>=3){	//one or more clients responded
 				if (currentSubstring.contains(":")){
@@ -413,7 +412,7 @@ ControlledObject target20;
 				else{
 					nextSubstring="";
 				}
-			
+
 				while (currentSubstring.length()>0){
 					if (!Helper.isNum(currentSubstring.charAt(0))) {
 						currentSubstring = currentSubstring.substring(1);
@@ -427,7 +426,7 @@ ControlledObject target20;
 						currentSubstringTrimmed+=currentSubstring.charAt(i);
 					}
 				}
-				
+
 				try {					
 					addObjectToRoom(Integer.parseInt(currentSubstringTrimmed));
 				}
@@ -435,14 +434,14 @@ ControlledObject target20;
 					e.printStackTrace();
 				}
 				currentSubstring=nextSubstring;
-						
+
 				}
-			
-			
+
+
 			if (room.size()>=1){
 				currentObject=room.get(objectIndex);
 				Variable var_sel = getVariable(currentObject, "selection");
-			
+
 				if (room.size() == 1){
 					level = OBJECT_LEVEL;
 					objectIndex = 0;
@@ -465,8 +464,8 @@ ControlledObject target20;
 			}
 
 		}
-			
-		
+
+
 		else{	//leve != LIMBO
 			//NOT INITIAL MESSAGE
 			try {
@@ -492,7 +491,7 @@ ControlledObject target20;
 								currentVar.setContinuous(Integer.parseInt(value));
 							}
 					}
-					
+
 				}
 			}
 			}
@@ -500,13 +499,13 @@ ControlledObject target20;
 			catch (StringIndexOutOfBoundsException e) {
 				Log.i("debugging", "badly formatted message: " + message);
 			}
-			
+
 		}
 		resetLayout();
 	}
-	
 
-	
+
+
 	public void addObjectToRoom(int key){
 		if (objects.containsKey(key)){
 			//DON'T ADD THE SAME OBJECT TWICE
@@ -517,17 +516,17 @@ ControlledObject target20;
 		}
 		else throw new NumberFormatException("key for object: " + key + " was invalid"); 
 	}
-	
+
 	public void switchMode(boolean forward){
 		Log.i("debugging", "onfling called on level SELECTION? " + (level == SELECTION) );
 		int length;
 		LinearLayout holder;
 		HorizontalScrollView scroller = (HorizontalScrollView)findViewById (R.id.scroller);
 		switch (level){
-		
+
 		case (SELECTION):
 			Log.i("debugging", "inside switchmode/selection");
-			
+
 //			Log.d("debugging", scroller.toString());
 //			if (forward){
 //				exp_mode = MODE_IR;
@@ -545,7 +544,7 @@ ControlledObject target20;
 			break;
 		case (ROOM_LEVEL):
 			//switch to a different client candidate
-			
+
 			scroller = (HorizontalScrollView)findViewById (R.id.scroller);
 			length = room.size();
 			if (forward && objectIndex != length - 1) 
@@ -555,9 +554,9 @@ ControlledObject target20;
 				if (objectIndex == 6){
 					flingRight = 0;
 					scroller.pageScroll(ScrollView.FOCUS_RIGHT);
-					
+
 				}
-				
+
 				}
 			else if (!forward && objectIndex != 0) {
 				objectIndex--;	
@@ -567,19 +566,19 @@ ControlledObject target20;
 					flingLeft = 0;
 				}
 			}
-			
+
 			//update the led for hovered client candidate
 			//set the previously hovering one to blink slow
-	    
+
 			currentObject=room.get(objectIndex);
 			//set the current hovering one to blink fast
 			Variable var_sel = getVariable(currentObject, "selection");
 			connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'S', "80"));
-	    
+
 			varIndex=0;
 			holder = (LinearLayout) findViewById(R.id.list_holder);
 			for (int i = 0 ; i < room.size(); i ++){
-				
+
 				TextView currentText = (TextView) holder.getChildAt(i);
 				if (currentText.getText().equals(currentObject.getName())){
 					currentText.setTextColor(selectedColor);
@@ -590,13 +589,13 @@ ControlledObject target20;
 					currentText.setAlpha(outOfFocus);
 				}
 			}
-			
-			
+
+
 			break;
 		case (OBJECT_LEVEL):
 			if(exp_mode == MODE_HOME) {
 				//no object level switch in IR and List mode
-			
+
 				scroller = (HorizontalScrollView)findViewById (R.id.scroller);
 				length = currentObject.getVariables().size();
 				//- 2 SO LED IS HIDDEN
@@ -606,8 +605,8 @@ ControlledObject target20;
 						flingRight = 0;
 						scroller.pageScroll(ScrollView.FOCUS_RIGHT);
 					}
-					
-					
+
+
 				}
 				else if (!forward && varIndex != 0) {
 					varIndex--;
@@ -615,14 +614,14 @@ ControlledObject target20;
 						scroller.pageScroll(ScrollView.FOCUS_LEFT);
 						flingLeft = 0;
 					}
-					
+
 				}
 				currentVariable = currentObject.getVariables().get(varIndex);
-				
+
 				holder = (LinearLayout) findViewById(R.id.list_holder);
 				for (int i = 0 ; i < currentObject.getVariables().size()-1; i ++){
 					LinearLayout current = (LinearLayout) holder.getChildAt(i);
-					
+
 					TextView currentText = (TextView) current.getChildAt(0);
 					if (currentText.getText().equals(currentVariable.getName())){
 						currentText.setTextColor(selectedColor);
@@ -634,21 +633,21 @@ ControlledObject target20;
 						current.setAlpha(outOfFocus);
 					}
 				}
-			
+
 			}
-	
+
 		//resetLayout();
 	}
 	}
-	
 
-	
+
+
 	ArrayList<LinearLayout> views = new ArrayList<LinearLayout>();
 	MainActivity context = this;
-	
+
 	public void resetLayout(){
 
-		
+
 		runOnUiThread(new Runnable() {
 		     public void run() {
 		    	 TextView nameOfObject;
@@ -660,7 +659,7 @@ ControlledObject target20;
 				if (room.size()>0){
 					//IF THE ROOM HAS OBJECTS
 					currentObject = room.get(objectIndex);
-					
+
 					currentVariable = currentObject.getVariables().get(varIndex);
 					varName = currentVariable.getName();
 					String varValue = currentVariable.getCurrentValue();
@@ -677,7 +676,7 @@ ControlledObject target20;
 						TextView homeText = (TextView) findViewById(R.id.home_text);
 						Log.d("debugging", "change display to mode:" + exp_mode);
 						if(exp_mode == MODE_IR) {
-							
+
 							listText.setTextColor(unSelectedColor);
 							irText.setTextColor(selectedColor);
 							homeText.setTextColor(unSelectedColor);
@@ -693,14 +692,14 @@ ControlledObject target20;
 							irText.setTextColor(unSelectedColor);
 							homeText.setTextColor(selectedColor);
 						}
-						
+
 						break;
 					case (ROOM_LEVEL):
 						holder = (LinearLayout) findViewById(R.id.list_holder);
 						holder.removeAllViews();
-						
-						
-						
+
+
+
 						//POPULATE DEVICES
 						for (ControlledObject ob : room){
 							t= new TextView(context);
@@ -719,13 +718,13 @@ ControlledObject target20;
 							holder.addView(t);
 							t=null;		
 						}
-					
-						
-						
+
+
+
 						break;
 					case (OBJECT_LEVEL):
-				
-						
+
+
 						holder = (LinearLayout) findViewById(R.id.list_holder);
 						holder.removeAllViews();
 						nameOfObject = (TextView) findViewById(R.id.name_of_object);
@@ -734,15 +733,15 @@ ControlledObject target20;
 						views.clear();
 						//POPULATE DEVICES
 						for (Variable v : currentObject.getVariables()){
-						
+
 							LinearLayout l = new LinearLayout(context);
 							l.setOrientation(LinearLayout.VERTICAL);
 							LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 							l.setLayoutParams(params);
 							//l.setPadding(paddingAmount, 0 , paddingAmount, 0);
 							l.setPadding(0, 0 , paddingAmount, 0);
-							
-							
+
+
 							t= new TextView(context);
 							currentName = v.getName();
 							if (currentName.equals(currentVariable.getName())) {
@@ -753,20 +752,20 @@ ControlledObject target20;
 							t.setText(currentName);
 							t.setPadding(0, 0, 20, 0);
 							t.setTextSize(textSize);
-							
+
 							LinearLayout relative = new LinearLayout(context);
-						
+
 							if (v.hasContinuous()){
 								if (v.getName().equals("video") || v.getName().equals("music")){
 									relative.setOrientation(LinearLayout.HORIZONTAL);
 									//VIDEO CASE
 									//DEFAULT TO PAUSED FIRST
 									v.setBoolean(false);
-									
+
 									rewindButton = new ImageView(context);
 									rewindButton.setImageDrawable(getResources().getDrawable(R.drawable.rewindsmall));
 									toggleButton = new ImageView(context);
-									
+
 									toggleButton.setImageDrawable(getResources().getDrawable(R.drawable.playsmall));
 									fastForwardButton = new ImageView(context);
 									fastForwardButton.setAlpha(.4f);
@@ -791,15 +790,15 @@ ControlledObject target20;
 									relative.addView(rewindButton);
 									relative.addView(fastForwardButton);
 									}
-								
-									
+
+
 								else{
-									
-								
+
+
 								SeekBar progressBar = new SeekBar(context);
 								//ProgressBar progressBar = new ProgressBar(context, null, android.R.attr.progressBarStyle);
 								//RelativeLayout.LayoutParams progressParams = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-								
+
 								progressBar.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 								ImageView image = new ImageView(context);
 								image.setAlpha(0f);
@@ -807,8 +806,8 @@ ControlledObject target20;
 								if (currentName.equals(currentVariable.getName())) {
 									currentAlert = image;
 								}
-								
-							
+
+
 								//image.setImageDrawable(getResources().getDrawable(R.drawable.play_button));
 								relative.addView(progressBar);
 								//relative.addView(image);
@@ -824,54 +823,54 @@ ControlledObject target20;
 								else progressBar.setProgress(Integer.parseInt(currentValue));
 								}
 							}
-							
+
 							else {
 								//DOES NOT HAVE CONTINUOUS, ONLY HAS BOOLEAN
 								CheckBox checkBox = new CheckBox(context);
 								checkBox.setChecked(v.getBoolean());
 								relative.addView(checkBox);
-								
-								
+
+
 							}
-							
-							
+
+
 							l.addView(t);
 							l.addView(relative);
-							
-							
+
+
 							holder.addView(l);
 							if (currentName.equals(currentVariable.getName())) {
 								currentVariableLayout=l;
 							}
-							
+
 							views.add(l);
 							t=null;		
 							}
-						}
+						
 						HorizontalScrollView scroller = (HorizontalScrollView)findViewById (R.id.scroller);
-					
+
 						for (int i = 0; i < varIndex; i++){
 							Log.i("myGesture", "doing it");
 							scroller.pageScroll(ScrollView.FOCUS_RIGHT);
 						}
 						break;
-					
+
 				case (LIMBO):			
 					break;
 				}
-			
-		     
-		     }
-		});
+		     });
 
+		     }
 		
-		
+
+
+
     
 	public boolean isConnectingToLaptop(){
 		return connectingToLaptop;
 	}
 	ProgressBar variableProgressBar;
-	
+
 	public void updateValue(){
 		currentVariable = currentObject.getVariables().get(varIndex);
 		CheckBox variableCheckBox=null;
@@ -879,7 +878,7 @@ ControlledObject target20;
 
 		if (level == OBJECT_LEVEL){
 			LinearLayout rel = (LinearLayout) currentVariableLayout.getChildAt(1);
-			
+
 			if (!currentVariable.getName().equals("video") && !currentVariable.getName().equals("music")&& !currentVariable.getName().equals("slide")){
 					if (currentVariable.hasContinuous()) variableProgressBar = (ProgressBar) rel.getChildAt(0);	
 					else variableCheckBox = (CheckBox) rel.getChildAt(0);
@@ -902,7 +901,7 @@ ControlledObject target20;
 				if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
 			}
 			else if (currentValue.equals("off")){
-				
+
 				if (currentVariable.hasContinuous() ) {
 					runOnUiThread(new Runnable() {
 					     public void run() {
@@ -912,7 +911,7 @@ ControlledObject target20;
 				}
 				else variableCheckBox.setChecked(false);
 				if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
-				
+
 			}
 			else if (currentValue.equals("on")){
 			//ON/OFF CASE
@@ -925,7 +924,7 @@ ControlledObject target20;
 				}
 				else variableCheckBox.setChecked(true);
 				if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
-				
+
 			}
 			else {
 				if (currentVariable.hasContinuous()) {
@@ -936,32 +935,32 @@ ControlledObject target20;
 					     }
 					});
 				}
-				
+
 				if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'S', currentValue));
-				
+
 			}
 			Log.i("bt_message", "send out value: " + currentValue);
 			}
-		
+
 		//FORMAT MESSAGE
-		
+
 		}
-	
-			
-		
+
+
+
 		//FORMAT MESSAGE
-		
-		
-	
+
+
+
 	public void updateValue(int oldVal){
-		
+
 		CheckBox variableCheckBox=null;
 		int THRESHOLD = 3;
 		Variable currentVariable = currentObject.getVariables().get(varIndex);
 		Log.i("debugging", "in updateValue current variable is: " + currentVariable.getName());
 		if (level == OBJECT_LEVEL){
 			LinearLayout rel = (LinearLayout) currentVariableLayout.getChildAt(1);
-			
+
 			if (currentVariable.hasContinuous())variableProgressBar = (ProgressBar) rel.getChildAt(0);	
 			else variableCheckBox = (CheckBox) rel.getChildAt(0);
 					}
@@ -969,63 +968,63 @@ ControlledObject target20;
 			{
 			String currentValue = currentVariable.getCurrentValue();
 			if (currentValue.equals("off")){
-				
+
 				if (currentVariable.hasContinuous()) {
 					runOnUiThread(new Runnable() {
 					     public void run() {
-					    	
+
 					    	 variableProgressBar.setAlpha(.4f);
 					     }
 					});
 				}
 				else variableCheckBox.setChecked(false);
 				if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
-				
+
 			}
 			else if (currentValue.equals("on")){
 			//ON/OFF CASE
 				if (currentVariable.hasContinuous()){
 					runOnUiThread(new Runnable() {
 					     public void run() {
-					    	
+
 					    	 variableProgressBar.setAlpha(1f);
 					     }
 					});
 				}
 				else variableCheckBox.setChecked(true);
 				if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
-				
+
 			}
 			else {
 				if (currentVariable.hasContinuous()) {
 					variableProgressBar.setProgress(Integer.parseInt(currentValue));
 					runOnUiThread(new Runnable() {
 					     public void run() {
-					    	
+
 					    	 variableProgressBar.setAlpha(1f);
 					     }
 					});
 				}
 				if (Math.abs(Integer.parseInt(currentValue) - oldVal)< THRESHOLD){
-				
+
 					//don't send if hasn't changed enough 
 					return;
 				}
 				if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'S', currentValue));
-				
+
 			}
 			Log.i("bt_message", "send out value: " + currentValue);
 			}
-		
+
 		//FORMAT MESSAGE
-		
+
 		}
 
 	public void updateValue(boolean increase){
 		//VIDEO CASE 
 		ProgressBar valueOfVariable = null;
 		int THRESHOLD = 3;
-		
+
 		if (level == OBJECT_LEVEL){
 			//LinearLayout rel = (LinearLayout) currentVariableLayout.getChildAt(1);
 			//valueOfVariable = (ProgressBar) rel.getChildAt(0);
@@ -1037,18 +1036,18 @@ ControlledObject target20;
 						connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', "INC"));
 					}
 					//ADD 10 MILLIS TO POSITION
-					
+
 					runOnUiThread(new Runnable() {
 					     public void run() {
 					    	 long startTime = Calendar.getInstance().getTimeInMillis();
 					    	 rewindButton.setAlpha(.4f);
 							fastForwardButton.setAlpha(1f);
-					    	
+
 					     }
 					});
 					}
 				else 	{
-					
+
 					if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', "DEC"));
 					//SUBTRACT 10 MILLIS FROM POSITION
 					runOnUiThread(new Runnable() {
@@ -1059,16 +1058,16 @@ ControlledObject target20;
 					});
 				}
 		}
-			
-			
+
+
 	}
-		
+
 		//FORMAT MESSAGE
-		
-		
-	
-	
-	
+
+
+
+
+
     MultiTouchDetector multiTouchDetector = new MultiTouchDetector(this);
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
@@ -1082,13 +1081,13 @@ ControlledObject target20;
 	        return true;
 
 	    }
-	
 
-	  
+
+
 	@Override
 	public boolean onFling(MotionEvent arg0, MotionEvent arg1, float arg2,
 			float arg3) {
-		
+
 		// TODO Auto-generated method stub
 		return false;
 	}
@@ -1096,25 +1095,25 @@ ControlledObject target20;
 	@Override
 	public void onLongPress(MotionEvent e) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX,
 			float distanceY) {
-	
+
 			return false;
 	}
 
 	@Override
 	public void onShowPress(MotionEvent e) {
 		// TODO Auto-generated method stub
-		
+
 	}
-	
+
 	public void refreshRoom(){
 		Log.i("debugging", "refreshing room");
-		
+
 		if (connectingToLaptop) {
 			room.clear();
 			Log.d("debugging", "objects size"+objects.size());
@@ -1126,7 +1125,7 @@ ControlledObject target20;
 		varIndex=0;
 		objectIndex=0;
 	}
-	
+
 	public void turnOffLights(){
 		if (connectingToLaptop){
 			currentObject=room.get(objectIndex);
@@ -1137,13 +1136,13 @@ ControlledObject target20;
 	@Override
 	public boolean onSingleTapUp(MotionEvent e) {
 		//BEHAVIOR FOR TAP 
-	
+
 //		Log.i("debugging", "sent init message");
 		Log.i("debugging", "single tap up");
 		switch (level){
 			case (SELECTION):
-			
-				
+
+
 				if(exp_mode == MODE_IR) {
 					//tell glass arduino and clients that we are in list mode
 					Log.d("debugging", "sending cmd: exp IR mode");
@@ -1154,7 +1153,7 @@ ControlledObject target20;
 					Log.d("debugging", "sending cmd: exp list mode");
 					connectionManager.write("00SMOD002\n");
 					level = LIMBO;
-					
+
 				}else if(exp_mode == MODE_HOME){
 					Log.d("debugging", "sending cmd: exp HOME mode");
 					connectionManager.write("00SMOD001\n");
@@ -1164,36 +1163,36 @@ ControlledObject target20;
 				refreshObjects();
 				break;
 			case (LIMBO):
-				
+
 				if(exp_mode == MODE_IR || exp_mode == MODE_HOME) {
 					refreshRoom();
 				} else if(exp_mode == MODE_LIST) {
 					level = ROOM_LEVEL;
-					
+
 					objectIndex = 0;
 					currentObject=room.get(objectIndex);
 					Variable var_sel = getVariable(currentObject, "selection");
 					connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', "1st"));
 					resetLayout();
 				}
-				
+
 				//Log.i("debugging", "in limbo, room size is: " + room.size());
-			
+
 				break;
 			case (ROOM_LEVEL):
-				
-				
-			
+
+
+
 				level=OBJECT_LEVEL;
-				
+
 				//an object is selected, query initial status of each variables 
-			
+
 				//send out corresponding led commands
 				//selected client turn led on, others off
 				Variable var_sel = getVariable(currentObject, "selection");
 				if (connectingToLaptop){
 					connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', "on"));
-				
+
 					//removing this msg and have client auto reply status once it's selected
 //					for (Variable v: currentObject.getVariables()){
 //						if (!v.getName().equals("selection"))connectionManager.write(connectionManager.formatMessage(currentObject, v, 'R'));
@@ -1206,16 +1205,16 @@ ControlledObject target20;
 				//TODO: SELECT VARIABLE
 				if (currentVariable.hasBoolean()){
 					currentVariable.setBoolean(!currentVariable.getBoolean());
-					
+
 				}
 				if(exp_mode == MODE_HOME){
 					updateValue();
 					//skip if it's target acquisition test (IR or List)
 				}
-				
+
 				return false;
 				//level=VARIABLE_LEVEL;
-		
+
 		}
 		resetLayout();
 	return false;
@@ -1251,8 +1250,8 @@ ControlledObject target20;
 		
 		}*/
 		}
-	
-	
+
+
 	@Override
 	public void onScroll(MotionEvent e1, MotionEvent e2, float distanceX,
 			float distanceY, int numFingers) {
@@ -1262,7 +1261,7 @@ ControlledObject target20;
 		if (distanceY>-10){
 			//GET RID OF FALSE ALARM FROM DOWN STROKE
 		if (level ==OBJECT_LEVEL && !currentVariable.getName().equals("position")){
-			
+
 			if (distanceX > 0){
 				Log.i("var", "turning it down");
 				//TODO: TURN IT DOWN
@@ -1278,8 +1277,8 @@ ControlledObject target20;
 							updateValue(oldVal);
 						}
 					}
-				
-					
+
+
 					}
 					}
 			else{
@@ -1297,7 +1296,7 @@ ControlledObject target20;
 							currentVariable.setContinuous(newVal);
 							updateValue(oldVal);
 						}
-						
+
 					}
 					}
 					}
@@ -1358,32 +1357,32 @@ ControlledObject target20;
 					}
 		
 		}*/
-		
-		
-		
+
+
+
 	}
 
 	@Override
 	public void onFling(MotionEvent e1, MotionEvent e2, float velocityX,
 			float velocityY, int numFingers) {
 		if (level == OBJECT_LEVEL || level == ROOM_LEVEL || level == SELECTION){
-	
+
 			if (numFingers==fingersToNavigate){
 
 				if (velocityX>0){
 					flingLeft = 0;
 					flingRight++;
 						switchMode(true);
-					
-					
+
+
 				}
-				
+
 				else {
 					flingRight = 0;
 					flingLeft++;
 					switchMode(false);
 				}
-			
+
 			//TODO: CHANGE MODE
 			}
 		}
@@ -1392,21 +1391,21 @@ ControlledObject target20;
 				//forward
 				if (velocityX>0){
 					updateValue(true);
-					
+
 				}
 				//backward
 				else {
 					updateValue(false);
-					
+
 				}
-			
+
 		}
-		
+
 	}
 
-		
-		
-	
+
+
+
 	@Override
 	public void onBackPressed() {
 	    Log.i("myGesture", "onBackPressed");
@@ -1416,7 +1415,7 @@ ControlledObject target20;
 	    	//will also trigger turn off lights (executed on client side)
 	    	connectionManager.write("00CSELCAN\n");
 	    	level = LIMBO;
-	    
+
 	    	break;
 	    case (OBJECT_LEVEL):
 //	    	if (exp_mode == MODE_IR) level = LIMBO;
@@ -1425,22 +1424,22 @@ ControlledObject target20;
 	    	//send led off msg to previously connected client
 	    	turnOffLights();
 	    	break;
-	    
-	    
+
+
 	    case (LIMBO):
 	    	level = SELECTION;
 	    	break;
 	    	//onDestroy();
 	    	//super.onBackPressed();
 	    	//return;
-	    
+
 	    case (SELECTION):
 	    	onDestroy();
 	    	super.onBackPressed();
 	    	return;
 	    }
 	    resetLayout();
-	    
+
 	}
 
 	@Override
@@ -1448,19 +1447,19 @@ ControlledObject target20;
 		Log.i("debugging", "in on scroll ended");
 		//ONLY IF DONE CONNCETING/DONT SEND ERROR
 		if (exp_mode == MODE_HOME && level == OBJECT_LEVEL){
-		
+
 			if (numFingers == fingersToToggle && !currentVariable.getName().equals("video") && !currentVariable.getName().equals("position") && !currentVariable.getName().equals("music")){
-				
+
 				updateValue();
 			}
 			try{	
 				if (currentObject.getName().equals("TV")){
 				runOnUiThread(new Runnable() {
-			
+
 				     public void run() {
 				    	 Log.i("debugging", "in where i want to be");
 				    	 if (fastForwardButton !=null){
-				    		
+
 				    	 fastForwardButton.setAlpha(.4f);
 				    	 rewindButton.setAlpha(.4f);}
 				     }
@@ -1473,7 +1472,7 @@ ControlledObject target20;
 		try{	
 			if (currentObject.getName().equals("Slide")){
 				runOnUiThread(new Runnable() {
-			
+
 					public void run() {
 				    	 	if (fastForwardButton !=null && rewindButton !=null){
 				    	 		fastForwardButton.setAlpha(.4f);
@@ -1487,10 +1486,10 @@ ControlledObject target20;
 		}
 		}
 		// TODO Auto-generated method stub
-		
+
 	}
-	
-	
+
+
 	public Variable getVariable(ControlledObject obj, String var_name){
 		 Variable var = null;
 			for (Variable v: obj.getVariables()){
