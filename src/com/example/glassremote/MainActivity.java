@@ -858,6 +858,7 @@ ControlledObject target20;
 				case (LIMBO):			
 					break;
 				}
+		     }
 		     });
 
 		     }
@@ -909,6 +910,7 @@ ControlledObject target20;
 					     }
 					});
 				}
+				
 				else variableCheckBox.setChecked(false);
 				if (connectingToLaptop) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
 
