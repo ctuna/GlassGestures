@@ -1,4 +1,4 @@
-package com.example.glassremote;
+package edu.eecs.berkeley.glassremote;
 
 import android.util.Log;
 

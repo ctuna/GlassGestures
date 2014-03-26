@@ -1,10 +1,12 @@
-
+package edu.eecs.berkeley.glassremote;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
+
+import edu.eecs.berkeley.glassremote.R;
 
 import android.R.color;
 import android.app.Activity;

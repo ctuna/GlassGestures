@@ -1,4 +1,4 @@
-package com.example.glassremote;
+package edu.eecs.berkeley.glassremote;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,8 +21,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-
-
 
 public class ConnectionManager {
 	//TODO: Set master in constructor 
