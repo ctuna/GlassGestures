@@ -51,7 +51,8 @@ public class ConnectionManager {
 	public ConnectionManager (MainActivity master){
 		this.master=master;
 		//ARDUINO ADDRESS
-		this.connectionAddress="00:A0:96:13:58:5E";
+        this.connectionAddress="00:A0:96:13:58:5E";  // old address 
+		this.connectionAddress = "00:06:66:66:24:C3";
 	}
 	
 	//called from mainActivity to kick off connection
