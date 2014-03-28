@@ -33,7 +33,7 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
   GestureDetector.OnDoubleTapListener doubleGestureDetector;
 
 
-  public boolean connectingToLaptop = true;
+  public boolean connectingToLaptop = false;
 
   //NAVIGATION CONTROL
   //TWO NAVIGATES = TRUE means switching with 2 fingers, scrolling with 1 
@@ -199,11 +199,16 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
   }
 
   @Override
+  protected void onStop() {
+    super.onStop();
+  }
+  
+  @Override
   protected void onDestroy(){
     //try{
     turnOffLights();
     connectionManager.destroy();
-    super.onStop();
+    super.onDestroy();
     //	}
     //catch 
 
@@ -639,9 +644,7 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
     //resetLayout();
     }
   }
-
-
-
+  
   ArrayList<LinearLayout> views = new ArrayList<LinearLayout>();
   MainActivity context = this;
 
@@ -1065,11 +1068,6 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
   }
 
   //FORMAT MESSAGE
-
-
-
-
-
   MultiTouchDetector multiTouchDetector = new MultiTouchDetector(this);
   @Override
   public boolean onGenericMotionEvent(MotionEvent event) {
@@ -1077,11 +1075,12 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
     multiTouchDetector.onTouchEvent(event);
 
     return false;
-  }	  @Override
+  }	  
+  
+  @Override
   public boolean onDown(MotionEvent e) {
-    //Log.i("myGesture", "onDown with pointer count: "+ e.getPointerCount());
+    Log.i("myGesture", "onDown with pointer count: "+ e.getPointerCount());
     return true;
-
   }
 
 
@@ -1404,8 +1403,6 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
     }
 
   }
-
-
 
 
   @Override
