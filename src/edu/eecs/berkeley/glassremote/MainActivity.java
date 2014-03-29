@@ -11,7 +11,9 @@ import edu.eecs.berkeley.glassremote.R;
 import android.R.color;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.util.Log;
 import android.view.GestureDetector;
 
@@ -32,8 +34,11 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
   GestureDetector gestureDetector;
   GestureDetector.OnDoubleTapListener doubleGestureDetector;
 
+  // disable sleep in the app
+  protected PowerManager.WakeLock mWakeLock;
 
-  public boolean connectingToLaptop = false;
+  
+  public boolean connectingToLaptop = true;
 
   //NAVIGATION CONTROL
   //TWO NAVIGATES = TRUE means switching with 2 fingers, scrolling with 1 
@@ -125,8 +130,18 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
   ControlledObject target19;
   ControlledObject target20;
 
+  
+
+  
   @Override
   protected void onCreate(Bundle savedInstanceState) {
+    
+    /* This code together with the one in onDestroy() 
+     * will make the screen be always on until this Activity gets destroyed. */
+    final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+    this.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "My Tag");
+    this.mWakeLock.acquire();
+    
     //begin in limbo
     level = SELECTION;
     resetContentView();
@@ -208,7 +223,10 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
     //try{
     turnOffLights();
     connectionManager.destroy();
+    this.mWakeLock.release();
     super.onDestroy();
+
+
     //	}
     //catch 
 
