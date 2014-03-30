@@ -7,20 +7,20 @@
     android:orientation="horizontal"
     >
 
-   
-    
      <TextView
-       android:id="@+id/connected"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize= "@dimen/secondary_text_size"
-        android:text="connected to " />
+         android:id="@+id/connected"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:text="connected to "
+         android:textColor="@color/green"
+         android:textSize="@dimen/secondary_text_size" />
      
 	<TextView
 		android:id="@+id/name_of_object"
         android:gravity="left"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textColor="@color/green"
         android:textSize= "@dimen/secondary_text_size"
         android:text="99" />
     
