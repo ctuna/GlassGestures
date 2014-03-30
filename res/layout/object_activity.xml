@@ -4,41 +4,25 @@
      android:padding="20dp"
     android:scrollbars="horizontal"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     >
 
    
     
      <TextView
-       android:id="@+id/name_of_object"
-        android:gravity="left"
-        android:layout_width="match_parent"
+       android:id="@+id/connected"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize= "@dimen/secondary_text_size"
-        
-        android:text="TextView" />
-    
-<HorizontalScrollView 
-    android:layout_width="match_parent"
-    android:id="@+id/scroller"
-    android:scrollbars="horizontal"
-    android:layout_height="match_parent"
-    
-    >
-
-    <LinearLayout
+        android:text="connected to " />
+     
+	<TextView
+		android:id="@+id/name_of_object"
+        android:gravity="left"
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:id="@+id/list_holder">
+        android:layout_height="wrap_content"
+        android:textSize= "@dimen/secondary_text_size"
+        android:text="99" />
+    
 
-      
-         
-         
-        </LinearLayout>
-
-
-
-</HorizontalScrollView>
 </LinearLayout>
