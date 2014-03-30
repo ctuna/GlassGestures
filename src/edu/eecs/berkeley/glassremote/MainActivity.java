@@ -39,7 +39,7 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
   protected PowerManager.WakeLock mWakeLock;
 
   //when connecting is false, glass doesn't connect to devices but pretends to
-  public boolean connecting = false;
+  public boolean isConnected = false;
 
   //NAVIGATION CONTROL
   //TWO NAVIGATES = TRUE means switching with 2 fingers, scrolling with 1 
@@ -118,11 +118,11 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
     
     //start in limbo
     level = LIMBO;
-    connectionManager= new ConnectionManager(this);
+    connectionManager= new ConnectionManager(this, isConnected);
     resetContentView();
 
     
-    if (connecting){
+    if (isConnected){
       connectionManager.start();
     }
     
@@ -186,7 +186,7 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
   //GESTURES
 
   public boolean getConnectingToLaptop(){
-    return connecting;
+    return isConnected;
   }
   /**
    * lamp->light	on/off	continuous
@@ -236,7 +236,7 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
     room.clear();
     //TODO: add list from IR 
  
-    if (!connecting){
+    if (!isConnected){
       //ADD DUMMY OBJECTS
       room.add(smartTV);
       room.add(lamp);
@@ -441,7 +441,7 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
 
 
   public boolean isConnectingToLaptop(){
-    return connecting;
+    return isConnected;
   }
   ProgressBar variableProgressBar;
 
@@ -472,7 +472,7 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
             }
           }
         });
-        if (connecting) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
+        if (isConnected) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
       }
       else if (currentValue.equals("off")){
 
@@ -485,7 +485,7 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
         }
 
         else variableCheckBox.setChecked(false);
-        if (connecting) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
+        if (isConnected) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
 
       }
       else if (currentValue.equals("on")){
@@ -498,7 +498,7 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
           });
         }
         else variableCheckBox.setChecked(true);
-        if (connecting) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
+        if (isConnected) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
 
       }
       else {
@@ -511,7 +511,7 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
           });
         }
 
-        if (connecting) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'S', currentValue));
+        if (isConnected) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'S', currentValue));
 
       }
       Log.i("bt_message", "send out value: " + currentValue);
@@ -553,7 +553,7 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
           });
         }
         else variableCheckBox.setChecked(false);
-        if (connecting) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
+        if (isConnected) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
 
       }
       else if (currentValue.equals("on")){
@@ -567,7 +567,7 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
           });
         }
         else variableCheckBox.setChecked(true);
-        if (connecting) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
+        if (isConnected) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', currentValue));
 
       }
       else {
@@ -585,7 +585,7 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
           //don't send if hasn't changed enough 
           return;
         }
-        if (connecting) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'S', currentValue));
+        if (isConnected) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'S', currentValue));
 
       }
       Log.i("bt_message", "send out value: " + currentValue);
@@ -607,7 +607,7 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
     if (level == OBJECT_LEVEL ){
       Log.i("cure", "currentvariable percent is"+ currentVariable.getPercentage());
       if (increase){
-        if (connecting) {
+        if (isConnected) {
           connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', "INC"));
         }
         //ADD 10 MILLIS TO POSITION
@@ -623,7 +623,7 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
       }
       else 	{
 
-        if (connecting) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', "DEC"));
+        if (isConnected) connectionManager.write(connectionManager.formatMessage(currentObject, currentVariable, 'C', "DEC"));
         //SUBTRACT 10 MILLIS FROM POSITION
         runOnUiThread(new Runnable() {
           public void run() {
@@ -685,7 +685,7 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
   public void refreshRoom(){
     Log.i("FUNCTION", "refreshRoom");
 
-    if (connecting) {
+    if (isConnected) {
       room.clear();
       connectionManager.initialMessage();
     }
@@ -694,7 +694,7 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
   }
 
   public void turnOffLights(){
-    if (connecting){
+    if (isConnected){
       currentObject=room.get(objectIndex);
       Variable var_sel = getVariable(currentObject, "selection");
       connectionManager.write(connectionManager.formatMessage(currentObject, var_sel, 'C', "off"));
@@ -704,7 +704,7 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
   public boolean onSingleTapUp(MotionEvent e) {
   
     if (level == LIMBO){
-    	if (connecting){
+    	if (isConnected){
     		//TODO: CHECK ON THIS
     		refreshRoom();
     	}
