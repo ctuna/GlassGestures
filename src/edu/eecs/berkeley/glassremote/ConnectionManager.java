@@ -123,7 +123,7 @@ public class ConnectionManager {
 			}
 		}
 	};
-
+	
 	public boolean getIsConnected() {
 		return isConnected;
 	}
@@ -187,6 +187,17 @@ public class ConnectionManager {
 				master.unregisterReceiver(mReceiver);
 				registered = false;
 			}
+			if (mConnectThread != null) {
+	            mConnectThread.cancel();
+	            mConnectThread = null;
+	        }
+
+	        if (mConnectedThread != null) {
+	            mConnectedThread.cancel();
+	            mConnectedThread = null;
+	        }
+
+			
 			if (mmSocket != null) {
 				try {
 					mmSocket.close();
@@ -301,15 +312,12 @@ public class ConnectionManager {
 		}
 
 		public synchronized void connected(BluetoothSocket socket) {
-			// Cancel the thread that completed the connection
-			if (mConnectThread != null) {
-				mConnectThread = null;
-			}
+			
+	        // Cancel the thread that completed the connection
+	        if (mConnectThread != null) {mConnectThread.cancel(); mConnectThread = null;}
 
-			// Cancel any thread currently running a connection
-			if (mConnectedThread != null) {
-				mConnectedThread = null;
-			}
+	        // Cancel any thread currently running a connection
+	        if (mConnectedThread != null) {mConnectedThread.cancel(); mConnectedThread = null;}
 
 			// Start the thread to manage the connection and perform
 			// transmissions
@@ -323,6 +331,14 @@ public class ConnectionManager {
 			// whoSays.setText(mmSocket.getRemoteDevice().getName());
 
 		}
+		
+		public void cancel() {
+          try {
+              mmSocket.close();
+          } catch (IOException e) {
+              e.printStackTrace();
+          }
+      }
 
 	}
 
