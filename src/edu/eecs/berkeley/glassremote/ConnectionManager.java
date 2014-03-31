@@ -39,6 +39,8 @@ public class ConnectionManager {
 	int REQUEST_ENABLE_BT;
 	boolean registered = false;
 	private final String REQUEST_OBJECTS = "FF0000000";
+    private final String TERMINATE_MESSAGE = "DD0000000";
+
 	private static final UUID MY_UUID = UUID
 			.fromString("00001101-0000-1000-8000-00805F9B34FB");
 	private static final boolean D = true;
@@ -503,6 +505,10 @@ public class ConnectionManager {
 	public void initialMessage() {
 		// lastWriteTime = Calendar.getInstance().getTimeInMillis();
 		write(REQUEST_OBJECTS);
+	}
+	
+	public void terminateMessage() {
+	    write(TERMINATE_MESSAGE);
 	}
 
 	public String formatMessage(ControlledObject object, Variable variable,

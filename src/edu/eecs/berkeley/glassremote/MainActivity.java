@@ -76,7 +76,7 @@ public class MainActivity extends Activity implements
 	private int level;
 
 	// VARIABLE CONTROL
-	private ArrayList<ControlledObject> room;
+	private ArrayList<ControlledObject> room;   // room list out all the available targets in this room
 	private HashMap<Integer, ControlledObject> objects;
 	private ControlledObject currentObject;
 	private Variable currentVariable;
@@ -136,7 +136,7 @@ public class MainActivity extends Activity implements
 			// add objects name
 			TextView nameOfObject = (TextView) findViewById(R.id.name_of_object);
 			if (toConnect) {
-				nameOfObject.setText(currentObject.getId());
+				nameOfObject.setText(String.format("%02d", currentObject.getId()));
 			}
 			break;
 		}
@@ -162,17 +162,18 @@ public class MainActivity extends Activity implements
 	}
 
 	public void initializeObjects() {
-
 		room = new ArrayList<ControlledObject>();
 		objects = new HashMap<Integer, ControlledObject>();
-
+		
+		for (int i = 0; i < 20; ++i) {
+		    objects.put(i, new ControlledObject(String.format("%02d", i), i, new Variable("selection", true, true, 0, 100, this))); 
+		}
 	}
 
 	public void refreshObjects() {
-
-		objects.clear();
+		// we should never clear the objects
+	    // objects.clear();
 		room.clear();
-
 	}
 
 	public void receive(String message) {
@@ -419,9 +420,9 @@ public class MainActivity extends Activity implements
 
 		case (OBJECT_LEVEL):
 			level = LIMBO;
-			turnOffLights();
+			// turnOffLights();
+            connectionManager.terminateMessage();
 			break;
-
 		case (LIMBO):
 			super.onBackPressed();
 			return;
@@ -429,7 +430,7 @@ public class MainActivity extends Activity implements
 		resetContentView();
 
 	}
-
+	
 	@Override
 	public void onScrollEnded(int numFingers) {
 
