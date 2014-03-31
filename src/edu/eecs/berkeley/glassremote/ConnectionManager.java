@@ -108,7 +108,8 @@ public class ConnectionManager {
 						serverDevice = device;
 						mBluetoothAdapter.cancelDiscovery();
 						try {
-							new ConnectThread(serverDevice).run();
+						    thread = new ConnectThread(serverDevice);
+						    thread.run();
 						} catch (IOException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -123,7 +124,17 @@ public class ConnectionManager {
 			}
 		}
 	};
-
+	
+	private ConnectThread thread;
+	
+	public void stopThread(){
+	  if ( thread!=null ){
+	      thread.interrupt();
+	      thread = null;
+	  }
+	}
+	
+	
 	public boolean getIsConnected() {
 		return isConnected;
 	}
@@ -182,6 +193,7 @@ public class ConnectionManager {
 	}
 
 	public void destroy() {
+	    this.stopThread();
 		if (isActive) {
 			if (mReceiver != null && registered == true) {
 				master.unregisterReceiver(mReceiver);
@@ -300,6 +312,8 @@ public class ConnectionManager {
 			// manageConnectedSocket(mmSocket);
 		}
 
+		
+		
 		public synchronized void connected(BluetoothSocket socket) {
 			// Cancel the thread that completed the connection
 			if (mConnectThread != null) {
@@ -468,37 +482,15 @@ public class ConnectionManager {
 
 	public void write(String s) {
 		if (master.getConnectingToLaptop()) {
-			long initialTime;
-			long threshold = 300;
-
-			if (s.substring(3, 6).equals("SEL")) {
-				// DELAY
-				initialTime = Calendar.getInstance().getTimeInMillis();
-				threshold = 100;
-				while (Calendar.getInstance().getTimeInMillis() - initialTime < threshold) {
-					// SPIN
-				}
-			}
-
 			long currentTime = Calendar.getInstance().getTimeInMillis();
 			byte[] send = s.getBytes();
 			try {
 				mConnectedThread.write(send);
-				lastWriteTime = currentTime;
 			} catch (NullPointerException e) {
 				Log.i("debugging", "couldn't write message because unconnected");
 			}
-
-			if (s.substring(3, 6).equals("SEL")) {
-				initialTime = Calendar.getInstance().getTimeInMillis();
-				while (Calendar.getInstance().getTimeInMillis() - initialTime < threshold) {
-					// SPIN
-				}
-			}
 		} else {
-
 			Log.i("debugging", "sent message: " + s);
-
 		}
 	}
 
