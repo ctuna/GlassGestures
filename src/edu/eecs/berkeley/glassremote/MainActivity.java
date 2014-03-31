@@ -39,9 +39,9 @@ public class MainActivity extends Activity implements
 	// disable sleep in the app
 	protected PowerManager.WakeLock mWakeLock;
 
-	// when connecting is false, glass doesn't connect to devices but pretends
-	// to
-	public boolean isConnected = false;
+	// when toConnect is true, the Glass will connect to BT
+	// otherwise, it will pretend to
+	public boolean toConnect = true;
 
 	// NAVIGATION CONTROL
 	// TWO NAVIGATES = TRUE means switching with 2 fingers, scrolling with 1
@@ -98,13 +98,12 @@ public class MainActivity extends Activity implements
 		 */
 		super.onCreate(savedInstanceState);
 		final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-		this.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK,
-				"My Tag");
+		this.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "GlassRemote WakeLock Tag");
 		this.mWakeLock.acquire();
 
 		// start in limbo
 		level = LIMBO;
-		connectionManager = new ConnectionManager(this, isConnected);
+		connectionManager = new ConnectionManager(this, toConnect);
 		resetContentView();
 		connectionManager.start();
 		initializeObjects();
@@ -136,7 +135,7 @@ public class MainActivity extends Activity implements
 			setContentView(R.layout.object_activity);
 			// add objects name
 			TextView nameOfObject = (TextView) findViewById(R.id.name_of_object);
-			if (isConnected) {
+			if (toConnect) {
 				nameOfObject.setText(currentObject.getId());
 			}
 			break;
@@ -159,7 +158,7 @@ public class MainActivity extends Activity implements
 	}
 
 	public boolean getConnectingToLaptop() {
-		return isConnected;
+		return toConnect;
 	}
 
 	public void initializeObjects() {
@@ -308,7 +307,7 @@ public class MainActivity extends Activity implements
 	MainActivity context = this;
 
 	public boolean isConnectingToLaptop() {
-		return isConnected;
+		return toConnect;
 	}
 
 	ProgressBar variableProgressBar;
@@ -361,7 +360,7 @@ public class MainActivity extends Activity implements
 	public void refreshRoom() {
 		Log.i("FUNCTION", "refreshRoom");
 
-		if (isConnected) {
+		if (toConnect) {
 			room.clear();
 			connectionManager.initialMessage();
 		}
@@ -370,7 +369,7 @@ public class MainActivity extends Activity implements
 	}
 
 	public void turnOffLights() {
-		if (isConnected) {
+		if (toConnect) {
 			currentObject = room.get(objectIndex);
 			Variable var_sel = getVariable(currentObject, "selection");
 			connectionManager.write(connectionManager.formatMessage(
@@ -382,7 +381,7 @@ public class MainActivity extends Activity implements
 	public boolean onSingleTapUp(MotionEvent e) {
 
 		if (level == LIMBO) {
-			if (isConnected) {
+			if (toConnect) {
 				// TODO: CHECK ON THIS
 				refreshRoom();
 			} else {
@@ -424,10 +423,8 @@ public class MainActivity extends Activity implements
 			break;
 
 		case (LIMBO):
-			onDestroy();
 			super.onBackPressed();
 			return;
-
 		}
 		resetContentView();
 

@@ -83,7 +83,6 @@ public class ConnectionManager {
 	}
 
 	BroadcastReceiver mReceiver = new BroadcastReceiver() {
-
 		public void onReceive(Context context, Intent intent) {
 			if (isActive) {
 				String action = intent.getAction();
@@ -173,10 +172,9 @@ public class ConnectionManager {
 
 			// Register the BroadcastReceiver
 			IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-			master.registerReceiver(mReceiver, filter); // Don't forget to
-														// unregister
-
-			// during onDestroy
+			master.registerReceiver(mReceiver, filter); 
+			
+			// Don't forget to unregister during onDestroy
 			registered = true;
 		}
 	}
@@ -505,7 +503,6 @@ public class ConnectionManager {
 	public void initialMessage() {
 		// lastWriteTime = Calendar.getInstance().getTimeInMillis();
 		write(REQUEST_OBJECTS);
-
 	}
 
 	public String formatMessage(ControlledObject object, Variable variable,
