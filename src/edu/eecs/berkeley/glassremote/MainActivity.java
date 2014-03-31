@@ -144,15 +144,35 @@ public class MainActivity extends Activity implements
 
 	@Override
 	protected void onStop() {
-		super.onStop();
+	    super.onStop();
 	}
 
 	@Override
+    protected void onPause() {
+	    if (this.mWakeLock != null &&           
+            (this.mWakeLock.isHeld() == true)) {
+	        this.mWakeLock.release();
+	        this.mWakeLock = null;
+	    }
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        if ((this.mWakeLock != null) &&           // we have a WakeLock
+            (this.mWakeLock.isHeld() == false)) {  // but we don't hold it 
+          this.mWakeLock.acquire();
+        }
+        super.onResume();
+    }
+    
+	@Override
 	protected void onDestroy() {
-		// try{
-		turnOffLights();
-		connectionManager.destroy();
-		this.mWakeLock.release();
+	    if (this.mWakeLock != null) {
+	        this.mWakeLock.release();
+            this.mWakeLock = null; 
+	    }
+	    connectionManager.destroy();
 		super.onDestroy();
 
 	}
@@ -182,72 +202,20 @@ public class MainActivity extends Activity implements
 
 		if (level == LIMBO) {
 			// PARSE RESPONSE TO FF000000
-			String currentSubstring = message;
-			String nextSubstring = "";
-			String[] halves = new String[2];
-
-			while (currentSubstring.length() >= 3) { // one or more clients
-														// responded
-				if (currentSubstring.contains(":")) {
-					halves = currentSubstring.split(":", 2);
-					currentSubstring = halves[0];
-					nextSubstring = halves[1];
-				} else {
-					nextSubstring = "";
-				}
-
-				while (currentSubstring.length() > 0) {
-					if (!Helper.isNum(currentSubstring.charAt(0))) {
-						currentSubstring = currentSubstring.substring(1);
-					} else
-						break;
-				}
-				String currentSubstringTrimmed = "";
-				// TRIM OUT EXTRA SPACES
-				for (int i = 0; i < currentSubstring.length(); i++) {
-					if (Helper.isNum(currentSubstring.charAt(i))) {
-						currentSubstringTrimmed += currentSubstring.charAt(i);
-					}
-				}
-
-				try {
-					addObjectToRoom(Integer.parseInt(currentSubstringTrimmed));
-				} catch (NumberFormatException e) {
-					e.printStackTrace();
-				}
-				currentSubstring = nextSubstring;
-
-			}
-
-			if (room.size() >= 1) {
-				currentObject = room.get(objectIndex);
-				Variable var_sel = getVariable(currentObject, "selection");
-
-				if (room.size() == 1) {
-					level = OBJECT_LEVEL;
-					objectIndex = 0;
-					// "AON" (auto on) means only 1 client responded and is auto
-					// selected
-					// "ON" means selected manully among multiple targets by the
-					// user
-					connectionManager.write(connectionManager.formatMessage(
-							currentObject, var_sel, 'C', "aon"));
-				} else if (room.size() > 1) {
-					level = ROOM_LEVEL;
-					// get the first ID and ask to blink fast
-					connectionManager.write(connectionManager.formatMessage(
-							currentObject, var_sel, 'C', "1st"));
-				}
-			} else {
-				// no clients in room
+			// message is a single target id
+		    try {
+		        objectIndex = Integer.parseInt(message.replaceAll("(\\r|\\n)", ""));
+			    currentObject = objects.get(objectIndex);
+			    Variable var_sel = getVariable(currentObject, "selection");
+			    level = OBJECT_LEVEL;
+			    objectIndex = 0;
+		    } catch (Exception e) {
+		        // no clients in room
 				Log.d("debugging", "room size is 0");
 				Toast toast = Toast.makeText(getApplicationContext(),
-						"no appliances were found", Toast.LENGTH_SHORT);
+						"failed connection", Toast.LENGTH_SHORT);
 				toast.show();
-				// meaning no clients responded after the broadcast
-				connectionManager.write("00CSEL NA\n");
 			}
-
 		}
 
 		else { // leve != LIMBO
@@ -428,7 +396,6 @@ public class MainActivity extends Activity implements
 			return;
 		}
 		resetContentView();
-
 	}
 	
 	@Override
