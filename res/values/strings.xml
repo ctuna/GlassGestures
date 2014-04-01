@@ -6,4 +6,6 @@
     <string name="hello_world">Hello world!</string>
 	<string name="hello_remote">Remote</string>
 
+	<string name="not_connected">You are not connected to a device</string>
+    
 </resources>
