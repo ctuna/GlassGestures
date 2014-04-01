@@ -35,3 +35,8 @@ has been detected, with numFingers indicating the number of fingers in the event
       public void onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY, int numFingers);
       
     
+== A list of useful adb commands:
+1) Open the Settings app:
+
+    adb shell am start -a android.intent.action.MAIN -n com.android.settings/.Settings
+
