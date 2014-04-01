@@ -168,18 +168,18 @@ public class MainActivity extends Activity implements
     switch (level) {
     case (LIMBO):
       setContentView(R.layout.activity_main);
-      break;
+    break;
     case (ROOM_LEVEL):
       setContentView(R.layout.room_activity);
-      break;
+    break;
     case (OBJECT_LEVEL):
       setContentView(R.layout.object_activity);
-      // add objects name
-      TextView nameOfObject = (TextView) findViewById(R.id.name_of_object);
-      if (toConnect) {
-	nameOfObject.setText(String.format("%02d", currentObject.getId()));
-      }
-      break;
+    // add objects name
+    TextView nameOfObject = (TextView) findViewById(R.id.name_of_object);
+    if (toConnect) {
+      nameOfObject.setText("connected to " + String.format("%02d", currentObject.getId()));
+    }
+    break;
     }
   }
 
@@ -194,8 +194,7 @@ public class MainActivity extends Activity implements
     super.onPause();
     if(D) Log.e(TAG, "- ON PAUSE -");
 
-    if (this.mWakeLock != null &&           
-	(this.mWakeLock.isHeld() == true)) {
+    if (this.mWakeLock != null && (this.mWakeLock.isHeld() == true)) {
       this.mWakeLock.release();
       this.mWakeLock = null;
     }
@@ -228,7 +227,7 @@ public class MainActivity extends Activity implements
 
     if (this.mWakeLock != null) {
       this.mWakeLock.release();
-      this.mWakeLock = null; 
+      this.mWakeLock = null;
     }
     if (mConnectionManager != null)
       mConnectionManager.stop();

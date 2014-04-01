@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-     <color name="sky">#4DB9F0</color>
-     <color name="sky_light">#95D5F5</color>
-     <color name="tangerine">#F0684D</color>
-     <color name="tangerine_light">#F7A18F</color>
-     <color name="background">#000000</color>
-     <color name="green">#ACD0BA</color>
-     <color name="white_transparent">#64FFFFFF</color>
+    
+    <color name="black">#ff000000</color>
+    <color name="white">#ffffffff</color>
+    <color name="gray">#ff808080</color>
+    <color name="red">#ffcc3333</color>
+    
+    <color name="sky">#4DB9F0</color>
+    <color name="sky_light">#95D5F5</color>
+    <color name="tangerine">#F0684D</color>
+    <color name="tangerine_light">#F7A18F</color>
+    <color name="background">#000000</color>
+    <color name="green">#ACD0BA</color>
+    <color name="white_transparent">#64FFFFFF</color>
 </resources>
