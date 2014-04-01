@@ -225,10 +225,6 @@ public class MainActivity extends Activity implements
     super.onDestroy();
     if(D) Log.e(TAG, "--- ON DESTROY ---");
 
-    if (this.mWakeLock != null) {
-      this.mWakeLock.release();
-      this.mWakeLock = null;
-    }
     if (mConnectionManager != null)
       mConnectionManager.stop();
   }
@@ -286,6 +282,7 @@ public class MainActivity extends Activity implements
         mConnectedDeviceName = msg.getData().getString(DEVICE_NAME);
         Toast.makeText(getApplicationContext(), "Connected to "
             + mConnectedDeviceName, Toast.LENGTH_SHORT).show();
+        
         break;
       case MESSAGE_TOAST:
         Toast.makeText(getApplicationContext(), msg.getData().getString(TOAST),
