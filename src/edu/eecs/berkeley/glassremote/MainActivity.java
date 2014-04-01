@@ -280,8 +280,7 @@ public class MainActivity extends Activity implements
         byte[] readBuf = (byte[]) msg.obj;
         // construct a string from the valid bytes in the buffer
         String readMessage = new String(readBuf, 0, msg.arg1);
-
-        Toast.makeText(getApplicationContext(), readMessage, Toast.LENGTH_SHORT).show();
+        handleBTMessage(readMessage);
         break;
       case MESSAGE_DEVICE_NAME:
         // save the connected device's name
@@ -297,7 +296,28 @@ public class MainActivity extends Activity implements
     }
   };
   
-
+  private void handleBTMessage(String message) {
+    Log.i(TAG, "Handling BT received message: " + message);
+    if (level == LIMBO) {
+      try {
+        objectIndex = Integer.parseInt(message.replaceAll("(\\r|\\n)", ""));
+        currentObject = objects.get(objectIndex);
+        level = OBJECT_LEVEL;
+      }
+      catch (Exception e) {
+        // no clients in room
+        Log.d("debugging", "room size is 0");
+        Toast toast = Toast.makeText(getApplicationContext(),
+            "failed connection", Toast.LENGTH_SHORT);
+        toast.show();
+      }
+    }
+    else {
+      // not in LIMBO
+    }
+    resetContentView();
+  }
+  
   public boolean getConnectingToLaptop() {
     return toConnect;
   }
@@ -317,68 +337,6 @@ public class MainActivity extends Activity implements
     room.clear();
   }
 
-  public void receive(String message) {
-    Log.i("FUNCTION", "receive");
-    Log.i("MESSAGE", "received message " + message);
-
-    if (level == LIMBO) {
-      // PARSE RESPONSE TO FF000000
-      // message is a single target id
-      try {
-	objectIndex = Integer.parseInt(message.replaceAll("(\\r|\\n)", ""));
-	currentObject = objects.get(objectIndex);
-	Variable var_sel = getVariable(currentObject, "selection");
-	level = OBJECT_LEVEL;
-	objectIndex = 0;
-      } catch (Exception e) {
-	// no clients in room
-	Log.d("debugging", "room size is 0");
-	Toast toast = Toast.makeText(getApplicationContext(),
-				     "failed connection", Toast.LENGTH_SHORT);
-	toast.show();
-      }
-    }
-
-    else { // leve != LIMBO
-      // NOT INITIAL MESSAGE
-      try {
-	String id = message.substring(0, 2);
-	String fn = message.substring(2, 3);
-	String variable = message.substring(3, 6);
-	String value = message.substring(6, 9);
-	// PARSE NORMAL MESSAGE
-	for (Variable currentVar : currentObject.getVariables()) {
-	  if (currentVar.getAbbreviation().equals(variable)) {
-	    if (fn.equals("A")) {
-	      // IF IT'S AN ACK, SET VALUE
-	      boolean on = !value.equals("OFF");
-	      if (currentVar.hasBoolean()
-		  && !currentVar.hasContinuous()) {
-		currentVar.setBoolean(on);
-	      }
-	      // IF OFF, SET TO OFF, IF ON, SET TO CONTINUOUS
-	      // VALUE
-	      if (currentVar.hasBoolean()
-		  && currentVar.hasContinuous()) {
-		if (!on) {
-		  currentVar.setBoolean(!on);
-		} else {
-		  currentVar.setContinuous(Integer
-					   .parseInt(value));
-		}
-	      }
-
-	    }
-	  }
-	}
-      } catch (StringIndexOutOfBoundsException e) {
-	Log.i("debugging", "badly formatted message: " + message);
-      }
-
-    }
-    resetContentView();
-  }
-
   public void addObjectToRoom(int key) {
     if (objects.containsKey(key)) {
       // DON'T ADD THE SAME OBJECT TWICE
@@ -392,7 +350,6 @@ public class MainActivity extends Activity implements
 				      + " was invalid");
   }
 
-
   ArrayList<LinearLayout> views = new ArrayList<LinearLayout>();
   MainActivity context = this;
 
@@ -401,7 +358,6 @@ public class MainActivity extends Activity implements
   }
 
   ProgressBar variableProgressBar;
-
 
   // FORMAT MESSAGE
   MultiTouchDetector multiTouchDetector = new MultiTouchDetector(this);
@@ -446,17 +402,6 @@ public class MainActivity extends Activity implements
 
   }
 
-  public void refreshRoom() {
-    Log.i("FUNCTION", "refreshRoom");
-
-    if (toConnect) {
-      room.clear();
-      // send initial message
-    }
-    varIndex = 0;
-    objectIndex = 0;
-  }
-
   @Override
   public boolean onTouchEvent(MotionEvent e) {
     switch(e.getAction())
@@ -479,15 +424,10 @@ public class MainActivity extends Activity implements
     
     if (level == LIMBO) {
       if (toConnect) {
-        sendMessage("FF00000");
+        sendMessage("FF");
         // send out message
-        refreshRoom();
-      } else {
-        level = OBJECT_LEVEL;
-        // TODO: change level to OBJECT LEVEL
       }
     }
-
     resetContentView();
     return false;
   }
@@ -514,16 +454,15 @@ public class MainActivity extends Activity implements
   public void onBackPressed() {
     Log.i("myGesture", "onBackPressed");
     switch (level) {
-
     case (OBJECT_LEVEL):
       level = LIMBO;
-      // turnOffLights();
+      sendMessage("D");
+      resetContentView();
       break;
     case (LIMBO):
       super.onBackPressed();
       return;
     }
-    resetContentView();
   }
 	
   @Override
