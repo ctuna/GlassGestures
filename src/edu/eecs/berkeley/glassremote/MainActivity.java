@@ -10,9 +10,12 @@ import edu.eecs.berkeley.glassremote.R;
 
 import android.R.color;
 import android.app.Activity;
-import android.content.BroadcastReceiver;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.os.PowerManager;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -33,15 +36,37 @@ import android.widget.Toast;
 public class MainActivity extends Activity implements
 					     GestureDetector.OnGestureListener, MultiTouchListener {
 
+  // Debugging
+  private static final String TAG = "GlassRemote";
+  private static final boolean D = true;
+  
   GestureDetector gestureDetector;
   GestureDetector.OnDoubleTapListener doubleGestureDetector;
 
+  // Message types sent from the BluetoothChatService Handler
+  public static final int MESSAGE_STATE_CHANGE = 1;
+  public static final int MESSAGE_READ = 2;
+  public static final int MESSAGE_WRITE = 3;
+  public static final int MESSAGE_DEVICE_NAME = 4;
+  public static final int MESSAGE_TOAST = 5;
+  
+  // Key names received from the BluetoothChatService Handler
+  public static final String DEVICE_NAME = "device_name";
+  public static final String TOAST = "toast";
+  
+  // target MAC address
+  private String btModuleAddress = "00:06:66:66:24:C3";
+  private BluetoothAdapter mBluetoothAdapter = null;
+  
   // disable sleep in the app
   protected PowerManager.WakeLock mWakeLock;
 
   // when toConnect is true, the Glass will connect to BT
   // otherwise, it will pretend to
   public boolean toConnect = true;
+  
+  //Name of the connected device
+  private String mConnectedDeviceName = null;   
 
   // NAVIGATION CONTROL
   // TWO NAVIGATES = TRUE means switching with 2 fingers, scrolling with 1
@@ -84,35 +109,52 @@ public class MainActivity extends Activity implements
   private int objectIndex = 0;
 
   // MESSAGING
-  ConnectionManager connectionManager;
+  private BluetoothChatService mConnectionManager = null;
 
   // EXPERIMENT
   // default set to IR mode
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
-
-    /*
-     * This code together with the one in onDestroy() will make the screen
-     * be always on until this Activity gets destroyed.
-     */
     super.onCreate(savedInstanceState);
+    if(D) Log.e(TAG, "+++ ON CREATE +++");
+
+    // This code together with the one in onDestroy() will make the screen
+    // be always on until this Activity gets destroyed.
     final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
     this.mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "GlassRemote WakeLock Tag");
     this.mWakeLock.acquire();
 
     // start in limbo
     level = LIMBO;
-    connectionManager = new ConnectionManager(this, toConnect);
     resetContentView();
-    connectionManager.start();
-    initializeObjects();
-
-    gestureDetector = new GestureDetector(this, this);
     selectedColor = getResources().getColor(color.holo_blue_dark);
     fadedColor = getResources().getColor(R.color.white_transparent);
     outOfFocus = .5f;
+    
+    // setup gesture detector
+    gestureDetector = new GestureDetector(this, this);
 
+  }
+
+  @Override
+  protected void onStart() {
+    super.onStart();
+    if(D) Log.e(TAG, "++ ON START ++");
+
+    // load all the targets
+    initializeObjects();
+
+    if (mConnectionManager == null) 
+      setupBluetooth();
+    
+    // Get local Bluetooth adapter
+    mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+    // Get the BluetoothDevice object
+    BluetoothDevice device = mBluetoothAdapter.getRemoteDevice( btModuleAddress );
+    // Attempt to connect to the device
+    // false means insecure connection, which doesn't matter now
+    mConnectionManager.connect(device, false);
   }
 
   @Override
@@ -124,7 +166,6 @@ public class MainActivity extends Activity implements
 
   public void resetContentView() {
     switch (level) {
-
     case (LIMBO):
       setContentView(R.layout.activity_main);
       break;
@@ -145,37 +186,117 @@ public class MainActivity extends Activity implements
   @Override
   protected void onStop() {
     super.onStop();
+    if(D) Log.e(TAG, "-- ON STOP --");
   }
 
   @Override
   protected void onPause() {
+    super.onPause();
+    if(D) Log.e(TAG, "- ON PAUSE -");
+
     if (this.mWakeLock != null &&           
 	(this.mWakeLock.isHeld() == true)) {
       this.mWakeLock.release();
       this.mWakeLock = null;
     }
-    super.onPause();
+
   }
 
   @Override
   protected void onResume() {
+    super.onResume();
+    if(D) Log.e(TAG, "+ ON RESUME +");
+    
+    // when on resume, we might need to acquire the lock again
     if ((this.mWakeLock != null) &&           // we have a WakeLock
 	(this.mWakeLock.isHeld() == false)) {  // but we don't hold it 
       this.mWakeLock.acquire();
     }
-    super.onResume();
   }
-    
+
+  private void setupBluetooth() {
+    Log.d(TAG, "setupBluetooth()");
+
+    // Initialize the BluetoothChatService to perform bluetooth connections
+    mConnectionManager = new BluetoothChatService(this, mHandler);
+  }
+
   @Override
   protected void onDestroy() {
+    super.onDestroy();
+    if(D) Log.e(TAG, "--- ON DESTROY ---");
+
     if (this.mWakeLock != null) {
       this.mWakeLock.release();
       this.mWakeLock = null; 
     }
-    connectionManager.destroy();
-    super.onDestroy();
-
+    if (mConnectionManager != null)
+      mConnectionManager.stop();
   }
+  
+  /**
+   * Sends a message.
+   * @param message  A string of text to send.
+   */
+  private void sendMessage(String message) {
+    // Check that we're actually connected before trying anything
+    if (mConnectionManager.getState() != BluetoothChatService.STATE_CONNECTED) {
+      Toast.makeText(this, R.string.not_connected, Toast.LENGTH_SHORT).show();
+      return;
+    }
+
+    // Check that there's actually something to send
+    if (message.length() > 0) {
+      // Get the message bytes and tell the BluetoothChatService to write
+      byte[] send = message.getBytes();
+      mConnectionManager.write(send);
+    }
+  }
+
+
+  // The Handler that gets information back from the BluetoothChatService
+  private final Handler mHandler = new Handler() {
+    @Override
+    public void handleMessage(Message msg) {
+      switch (msg.what) {
+      case MESSAGE_STATE_CHANGE:
+        if(D) Log.i(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
+        switch (msg.arg1) {
+        case BluetoothChatService.STATE_CONNECTED:
+          break;
+        case BluetoothChatService.STATE_CONNECTING:
+          break;
+        case BluetoothChatService.STATE_LISTEN:
+        case BluetoothChatService.STATE_NONE:
+          break;
+        }
+        break;
+      case MESSAGE_WRITE:
+        byte[] writeBuf = (byte[]) msg.obj;
+        // construct a string from the buffer
+        String writeMessage = new String(writeBuf);
+        break;
+      case MESSAGE_READ:
+        byte[] readBuf = (byte[]) msg.obj;
+        // construct a string from the valid bytes in the buffer
+        String readMessage = new String(readBuf, 0, msg.arg1);
+
+        Toast.makeText(getApplicationContext(), readMessage, Toast.LENGTH_SHORT).show();
+        break;
+      case MESSAGE_DEVICE_NAME:
+        // save the connected device's name
+        mConnectedDeviceName = msg.getData().getString(DEVICE_NAME);
+        Toast.makeText(getApplicationContext(), "Connected to "
+            + mConnectedDeviceName, Toast.LENGTH_SHORT).show();
+        break;
+      case MESSAGE_TOAST:
+        Toast.makeText(getApplicationContext(), msg.getData().getString(TOAST),
+            Toast.LENGTH_SHORT).show();
+        break;
+      }
+    }
+  };
+  
 
   public boolean getConnectingToLaptop() {
     return toConnect;
@@ -302,7 +423,6 @@ public class MainActivity extends Activity implements
   @Override
   public boolean onFling(MotionEvent arg0, MotionEvent arg1, float arg2,
 			 float arg3) {
-
     // TODO Auto-generated method stub
     return false;
   }
@@ -331,31 +451,40 @@ public class MainActivity extends Activity implements
 
     if (toConnect) {
       room.clear();
-      connectionManager.initialMessage();
+      // send initial message
     }
     varIndex = 0;
     objectIndex = 0;
   }
 
-  public void turnOffLights() {
-    if (toConnect) {
-      currentObject = room.get(objectIndex);
-      Variable var_sel = getVariable(currentObject, "selection");
-      connectionManager.write(connectionManager.formatMessage(
-							      currentObject, var_sel, 'C', "off"));
+  @Override
+  public boolean onTouchEvent(MotionEvent e) {
+    switch(e.getAction())
+    {
+      case MotionEvent.ACTION_DOWN:
+        Log.i(TAG, "onDown with pointer count: " + e.getPointerCount());
+        sendMessage("FF00000");
+        break;
+      case MotionEvent.ACTION_MOVE:
+        break;
+      case MotionEvent.ACTION_UP:
+        break;
     }
+    return super.onTouchEvent(e);
   }
-
+  
   @Override
   public boolean onSingleTapUp(MotionEvent e) {
-
+    if (D) Log.i(TAG, "single tap up");
+    
     if (level == LIMBO) {
       if (toConnect) {
-	// TODO: CHECK ON THIS
-	refreshRoom();
+        sendMessage("FF00000");
+        // send out message
+        refreshRoom();
       } else {
-	level = OBJECT_LEVEL;
-	// TODO: change level to OBJECT LEVEL
+        level = OBJECT_LEVEL;
+        // TODO: change level to OBJECT LEVEL
       }
     }
 
@@ -389,7 +518,6 @@ public class MainActivity extends Activity implements
     case (OBJECT_LEVEL):
       level = LIMBO;
       // turnOffLights();
-      connectionManager.terminateMessage();
       break;
     case (LIMBO):
       super.onBackPressed();
@@ -412,5 +540,4 @@ public class MainActivity extends Activity implements
     }
     return var;
   }
-
 }
