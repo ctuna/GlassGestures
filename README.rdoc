@@ -40,3 +40,15 @@ has been detected, with numFingers indicating the number of fingers in the event
 
     adb shell am start -a android.intent.action.MAIN -n com.android.settings/.Settings
 
+2) List all the available packages and then `grep` the one you want to install or uninstall:
+   
+    adb shell pm list packages -f
+
+3) Launch an app from adb:
+
+    adb shell am start edu.berkeley.eecs.glassremote
+
+4) Send texts to Android device
+
+    adb shell input text '1234'
+
