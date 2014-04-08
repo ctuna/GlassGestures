@@ -33,15 +33,25 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends Activity implements
-					     GestureDetector.OnGestureListener, TouchPadUpGestureListener {
+
+// This main activity maintains the BT connection
+// takes charge of the mode
+// by default, the app does nothing but only display "move to select\n touch to adjust\n tap to connect"
+// when onDown is detected, we switch to quasi-mode where we monitor the changes of head orientation
+  // a local algorithm is performed to determine which is the next target, this information is sent back to IR through BT
+  // we need a list of physical targets linked by the adjacent map data structure
+// when onUp is detected, we use the current selected one
+  // this could happen fairly soon after onDown, or longer, it doens't matter
+  // swipe down will go back (un-select)
+
+// main work now is how to support these in the UI
+
+public class MainActivity extends Activity {
 
   // Debugging
   private static final String TAG = "GlassRemote";
   private static final boolean D = true;
   
-  GestureDetector gestureDetector;
-
   // Message types sent from the BluetoothChatService Handler
   public static final int MESSAGE_STATE_CHANGE = 1;
   public static final int MESSAGE_READ = 2;
@@ -101,18 +111,15 @@ public class MainActivity extends Activity implements
   private int level;
 
   // VARIABLE CONTROL
-  private ArrayList<ControlledObject> room;   // room list out all the available targets in this room
-  private HashMap<Integer, ControlledObject> objects;
-  private ControlledObject currentObject;
+  private ArrayList<PhysicalTarget> room;   // room list out all the available targets in this room
+  private HashMap<Integer, PhysicalTarget> objects;
+  private PhysicalTarget currentObject;
   private Variable currentVariable;
   private int varIndex = 0;
   private int objectIndex = 0;
 
   // MESSAGING
   private BluetoothChatService mConnectionManager = null;
-
-  // EXPERIMENT
-  // default set to IR mode
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -132,11 +139,9 @@ public class MainActivity extends Activity implements
     fadedColor = getResources().getColor(R.color.white_transparent);
     outOfFocus = .5f;
     
-    // setup gesture detector
-    gestureDetector = new GestureDetector(this, this);
-    
     nameOfObject = (TextView) findViewById(R.id.name_of_object);
     message = (TextView) findViewById(R.id.message);
+   
   }
 
   
@@ -322,11 +327,11 @@ public class MainActivity extends Activity implements
   }
 
   public void initializeObjects() {
-    room = new ArrayList<ControlledObject>();
-    objects = new HashMap<Integer, ControlledObject>();
+    room = new ArrayList<PhysicalTarget>();
+    objects = new HashMap<Integer, PhysicalTarget>();
 		
     for (int i = 0; i < 20; ++i) {
-      objects.put(i, new ControlledObject(String.format("%02d", i), i, new Variable("selection", true, true, 0, 100, this))); 
+      objects.put(i, new PhysicalTarget(String.format("%02d", i), i));
     }
   }
 
@@ -360,67 +365,18 @@ public class MainActivity extends Activity implements
 
   @Override
   public boolean onGenericMotionEvent(MotionEvent event) {
-    // gestureDetector.onTouchEvent(event);
-
-    if (event.getAction() == MotionEvent.ACTION_UP) {
+    switch (event.getAction()) {
+    case MotionEvent.ACTION_DOWN:
+      Log.e(TAG, "onDown");
+      // enter quasi-mode
+      break;
+    case MotionEvent.ACTION_UP:
+      // make confirmation
       Log.e(TAG, "onTouchUp");
+      break;
+    default:  
     }
-    
-    Log.i("generic", event.toString());
     return false;
-  }
-
-  @Override
-  public boolean onDown(MotionEvent e) {
-    Log.i("myGesture", "onDown function called with pointer count: " + e.getPointerCount());
-    message.setText("onDown");
-    return true;
-  }
-
-  @Override
-  public boolean onFling(MotionEvent arg0, MotionEvent arg1, float arg2,
-			 float arg3) {
-    // TODO Auto-generated method stub
-    return false;
-  }
-
-  @Override
-  public void onLongPress(MotionEvent e) {
-    // TODO Auto-generated method stub
-    
-  }
-
-  @Override
-  public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX,
-			  float distanceY) {
-
-    return false;
-  }
-
-  @Override
-  public void onShowPress(MotionEvent e) {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
-  public boolean onKeyDown(int keycode, KeyEvent event) {
-      if (keycode == KeyEvent.KEYCODE_DPAD_CENTER) {
-          Log.i("Gesture", "keycode dpad center down");
-          // user tapped touchpad, do something
-          return true;
-      }
-      return false;
-  }
-  
-  @Override
-  public boolean onKeyUp(int keycode, KeyEvent event) {
-      if (keycode == KeyEvent.KEYCODE_DPAD_CENTER) {
-        Log.i("Gesture", "keycode dpad center up");
-          // user tapped touchpad, do something
-          return true;
-      }
-      return false;
   }
   
 //  @Override
@@ -437,8 +393,6 @@ public class MainActivity extends Activity implements
 //    return false;
 //  }
 
-  
-
   @Override
   public void onBackPressed() {
     Log.i("myGesture", "onBackPressed");
@@ -454,31 +408,4 @@ public class MainActivity extends Activity implements
     }
   }
 
-  public Variable getVariable(ControlledObject obj, String var_name) {
-    Variable var = null;
-    for (Variable v : obj.getVariables()) {
-      if (v.getName().equals(var_name)) {
-	return v;
-      }
-    }
-    return var;
-  }
-
-  @Override
-  public boolean onSingleTapUp(MotionEvent e) {
-    // TODO Auto-generated method stub
-    return false;
-  }
-
-  @Override
-  public void onTouchPadUp() {
-    // TODO Auto-generated method stub
-    Log.e(TAG, "onTouchPadUp");
-    message.post(new Runnable() {
-        public void run() {
-            /* the desired UI update */
-          message.setText("onUp");
-        }
-    });
-  }
 }
