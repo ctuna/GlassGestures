@@ -7,7 +7,6 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 
 import edu.eecs.berkeley.glassremote.R;
-
 import android.R.color;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -19,9 +18,10 @@ import android.os.Message;
 import android.os.PowerManager;
 import android.util.Log;
 import android.view.GestureDetector;
-
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.CheckBox;
 import android.widget.HorizontalScrollView;
@@ -34,14 +34,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity implements
-					     GestureDetector.OnGestureListener, MultiTouchListener {
+					     GestureDetector.OnGestureListener, TouchPadUpGestureListener {
 
   // Debugging
   private static final String TAG = "GlassRemote";
   private static final boolean D = true;
   
   GestureDetector gestureDetector;
-  GestureDetector.OnDoubleTapListener doubleGestureDetector;
 
   // Message types sent from the BluetoothChatService Handler
   public static final int MESSAGE_STATE_CHANGE = 1;
@@ -77,6 +76,7 @@ public class MainActivity extends Activity implements
 
   // LAYOUT
   TextView nameOfObject;
+  TextView message;
   ImageView currentAlert;
   TextView valueOfVariable;
   ImageView rewindButton;
@@ -134,9 +134,13 @@ public class MainActivity extends Activity implements
     
     // setup gesture detector
     gestureDetector = new GestureDetector(this, this);
-
+    
+    nameOfObject = (TextView) findViewById(R.id.name_of_object);
+    message = (TextView) findViewById(R.id.message);
   }
 
+  
+  
   @Override
   protected void onStart() {
     super.onStart();
@@ -144,17 +148,17 @@ public class MainActivity extends Activity implements
 
     // load all the targets
     initializeObjects();
-
-    if (mConnectionManager == null) 
-      setupBluetooth();
-    
-    // Get local Bluetooth adapter
-    mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-    // Get the BluetoothDevice object
-    BluetoothDevice device = mBluetoothAdapter.getRemoteDevice( btModuleAddress );
-    // Attempt to connect to the device
-    // false means insecure connection, which doesn't matter now
-    mConnectionManager.connect(device, false);
+//
+//    if (mConnectionManager == null) 
+//      setupBluetooth();
+//    
+//    // Get local Bluetooth adapter
+//    mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+//    // Get the BluetoothDevice object
+//    BluetoothDevice device = mBluetoothAdapter.getRemoteDevice( btModuleAddress );
+//    // Attempt to connect to the device
+//    // false means insecure connection, which doesn't matter now
+//    mConnectionManager.connect(device, false);
   }
 
   @Override
@@ -175,7 +179,6 @@ public class MainActivity extends Activity implements
     case (OBJECT_LEVEL):
       setContentView(R.layout.object_activity);
     // add objects name
-    TextView nameOfObject = (TextView) findViewById(R.id.name_of_object);
     if (toConnect) {
       nameOfObject.setText("connected to " + String.format("%02d", currentObject.getId()));
     }
@@ -355,20 +358,22 @@ public class MainActivity extends Activity implements
 
   ProgressBar variableProgressBar;
 
-  // FORMAT MESSAGE
-  MultiTouchDetector multiTouchDetector = new MultiTouchDetector(this);
-
   @Override
   public boolean onGenericMotionEvent(MotionEvent event) {
-    gestureDetector.onTouchEvent(event);
-    multiTouchDetector.onTouchEvent(event);
+    // gestureDetector.onTouchEvent(event);
 
+    if (event.getAction() == MotionEvent.ACTION_UP) {
+      Log.e(TAG, "onTouchUp");
+    }
+    
+    Log.i("generic", event.toString());
     return false;
   }
 
   @Override
   public boolean onDown(MotionEvent e) {
-    Log.i("myGesture", "onDown with pointer count: " + e.getPointerCount());
+    Log.i("myGesture", "onDown function called with pointer count: " + e.getPointerCount());
+    message.setText("onDown");
     return true;
   }
 
@@ -382,7 +387,7 @@ public class MainActivity extends Activity implements
   @Override
   public void onLongPress(MotionEvent e) {
     // TODO Auto-generated method stub
-
+    
   }
 
   @Override
@@ -399,52 +404,40 @@ public class MainActivity extends Activity implements
   }
 
   @Override
-  public boolean onTouchEvent(MotionEvent e) {
-    switch(e.getAction())
-    {
-      case MotionEvent.ACTION_DOWN:
-        Log.i(TAG, "onDown with pointer count: " + e.getPointerCount());
-        sendMessage("FF00000");
-        break;
-      case MotionEvent.ACTION_MOVE:
-        break;
-      case MotionEvent.ACTION_UP:
-        break;
-    }
-    return super.onTouchEvent(e);
+  public boolean onKeyDown(int keycode, KeyEvent event) {
+      if (keycode == KeyEvent.KEYCODE_DPAD_CENTER) {
+          Log.i("Gesture", "keycode dpad center down");
+          // user tapped touchpad, do something
+          return true;
+      }
+      return false;
   }
   
   @Override
-  public boolean onSingleTapUp(MotionEvent e) {
-    if (D) Log.i(TAG, "single tap up");
-    
-    if (level == LIMBO) {
-      if (toConnect) {
-        sendMessage("FF");
-        // send out message
+  public boolean onKeyUp(int keycode, KeyEvent event) {
+      if (keycode == KeyEvent.KEYCODE_DPAD_CENTER) {
+        Log.i("Gesture", "keycode dpad center up");
+          // user tapped touchpad, do something
+          return true;
       }
-    }
-    resetContentView();
-    return false;
+      return false;
   }
+  
+//  @Override
+//  public boolean onSingleTapUp(MotionEvent e) {
+//    if (D) Log.i(TAG, "single tap up");
+////    
+////    if (level == LIMBO) {
+////      if (toConnect) {
+////        sendMessage("FF");
+////        // send out message
+////      }
+////    }
+////    resetContentView();
+//    return false;
+//  }
 
-  @Override
-  public void onTapUp(int numFingers) {
-
-  }
-
-  @Override
-  public void onScroll(MotionEvent e1, MotionEvent e2, float distanceX,
-		       float distanceY, int numFingers) {
-	
-
-  }
-
-  @Override
-  public void onFling(MotionEvent e1, MotionEvent e2, float velocityX,
-		      float velocityY, int numFingers) {
-
-  }
+  
 
   @Override
   public void onBackPressed() {
@@ -460,11 +453,6 @@ public class MainActivity extends Activity implements
       return;
     }
   }
-	
-  @Override
-  public void onScrollEnded(int numFingers) {
-
-  }
 
   public Variable getVariable(ControlledObject obj, String var_name) {
     Variable var = null;
@@ -474,5 +462,23 @@ public class MainActivity extends Activity implements
       }
     }
     return var;
+  }
+
+  @Override
+  public boolean onSingleTapUp(MotionEvent e) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public void onTouchPadUp() {
+    // TODO Auto-generated method stub
+    Log.e(TAG, "onTouchPadUp");
+    message.post(new Runnable() {
+        public void run() {
+            /* the desired UI update */
+          message.setText("onUp");
+        }
+    });
   }
 }
