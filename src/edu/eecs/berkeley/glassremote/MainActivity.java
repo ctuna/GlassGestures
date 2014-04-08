@@ -20,6 +20,7 @@ import android.util.Log;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
@@ -46,8 +47,11 @@ import android.widget.Toast;
 
 // main work now is how to support these in the UI
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements GestureDetector.OnGestureListener {
 
+  GestureDetector gestureDetector;
+
+  
   // Debugging
   private static final String TAG = "GlassRemote";
   private static final boolean D = true;
@@ -72,8 +76,9 @@ public class MainActivity extends Activity {
 
   // when toConnect is true, the Glass will connect to BT
   // otherwise, it will pretend to
-  public boolean toConnect = true;
-  
+  private boolean toConnect = true;
+  private boolean isSelected = false;
+
   //Name of the connected device
   private String mConnectedDeviceName = null;   
 
@@ -86,7 +91,7 @@ public class MainActivity extends Activity {
 
   // LAYOUT
   TextView nameOfObject;
-  TextView message;
+  TextView mainMessage;
   ImageView currentAlert;
   TextView valueOfVariable;
   ImageView rewindButton;
@@ -140,8 +145,10 @@ public class MainActivity extends Activity {
     outOfFocus = .5f;
     
     nameOfObject = (TextView) findViewById(R.id.name_of_object);
-    message = (TextView) findViewById(R.id.message);
+    mainMessage = (TextView) findViewById(R.id.mainMessage);
    
+    gestureDetector = new GestureDetector(this, this);
+
   }
 
   
@@ -172,6 +179,38 @@ public class MainActivity extends Activity {
     getMenuInflater().inflate(R.menu.main, menu);
     return true;
   }
+  
+  // laying down menus for the interaction
+  /**
+   * Gets called every time the user presses the menu button.
+   * Use if your menu is dynamic.
+   */
+  @Override
+  public boolean onPrepareOptionsMenu(Menu menu) {
+      menu.clear();
+      menu.add(0, Menu.FIRST, Menu.NONE, "test");
+      menu.add(0, Menu.FIRST + 1, Menu.NONE, "test");
+      return super.onPrepareOptionsMenu(menu);
+  }
+  
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+      super.onOptionsItemSelected(item);
+
+      switch (item.getItemId()) {
+      case Menu.FIRST:
+        Log.i(TAG, "Menu first clicked"); break;
+      case Menu.FIRST + 1: 
+        Log.i(TAG, "Menu second clicked"); break;
+      }
+      return false;
+  }
+  @Override
+  public void onOptionsMenuClosed(Menu menu) {
+    mainMessage.setAlpha(1);
+    super.onOptionsMenuClosed(menu);  
+  }
+  
 
   public void resetContentView() {
     switch (level) {
@@ -365,8 +404,12 @@ public class MainActivity extends Activity {
 
   @Override
   public boolean onGenericMotionEvent(MotionEvent event) {
+    gestureDetector.onTouchEvent(event);
     switch (event.getAction()) {
     case MotionEvent.ACTION_DOWN:
+      // in single IR mode, we send out message and query the pending device
+      // inflate the menu and then open the Menu Options
+      // this part is easy
       Log.e(TAG, "onDown");
       // enter quasi-mode
       break;
@@ -376,7 +419,7 @@ public class MainActivity extends Activity {
       break;
     default:  
     }
-    return false;
+    return super.onGenericMotionEvent(event);
   }
   
 //  @Override
@@ -396,16 +439,61 @@ public class MainActivity extends Activity {
   @Override
   public void onBackPressed() {
     Log.i("myGesture", "onBackPressed");
-    switch (level) {
-    case (OBJECT_LEVEL):
-      level = LIMBO;
-      sendMessage("D");
-      resetContentView();
-      break;
-    case (LIMBO):
-      super.onBackPressed();
+    if (isSelected) {
+      isSelected = false;
       return;
     }
+    else {
+      super.onBackPressed();
+    } 
   }
 
+  @Override
+  public boolean onDown(MotionEvent arg0) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+
+
+  @Override
+  public boolean onFling(MotionEvent arg0, MotionEvent arg1, float arg2,
+      float arg3) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+
+
+  @Override
+  public void onLongPress(MotionEvent arg0) {
+    // TODO Auto-generated method stub
+    
+  }
+
+
+
+  @Override
+  public boolean onScroll(MotionEvent arg0, MotionEvent arg1, float arg2,
+      float arg3) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+
+
+  @Override
+  public void onShowPress(MotionEvent arg0) {
+    // TODO Auto-generated method stub
+    
+  }
+
+
+
+  @Override
+  public boolean onSingleTapUp(MotionEvent arg0) {
+    mainMessage.setAlpha((float) 0);
+    openOptionsMenu();    
+    return false;
+  }
 }

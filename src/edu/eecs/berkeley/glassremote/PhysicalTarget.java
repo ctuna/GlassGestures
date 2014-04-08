@@ -39,7 +39,7 @@ public class PhysicalTarget {
   public void updateOrientation(float pitch, float yaw, float roll) {
     this.setPitch(pitch);
     this.setYaw(yaw);
-    this.setRoll(roll);
+    this.roll = roll;
   }
 
   // for now we only have four neighbors as the implementation, we might need to update this later
