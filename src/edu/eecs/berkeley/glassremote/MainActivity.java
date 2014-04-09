@@ -21,6 +21,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -110,8 +111,8 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
   // VARIABLE CONTROL
   private ArrayList<PhysicalTarget> potentialTargets;   // room list out all the available targets in this room
   private HashMap<Integer, PhysicalTarget> targets;
-  private PhysicalTarget currentObject;
-
+  private PhysicalTarget currentTarget;
+  private int currentIndex;
   // MESSAGING
   private BluetoothChatService mConnectionManager = null;
 
@@ -139,8 +140,8 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
     gestureDetector = new GestureDetector(this, this);
 
   }
-
-  
+  public HorizontalScrollView scroller;
+  public LinearLayout holder;
   
   @Override
   protected void onStart() {
@@ -210,10 +211,10 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
     break;
     case (OBJECT_LEVEL):
       setContentView(R.layout.object_activity);
-    // add objects name
-    if (toConnect) {
-      nameOfObject.setText("connected to " + String.format("%02d", currentObject.getId()));
-    }
+      // add objects name
+      if (toConnect) {
+        nameOfObject.setText("connected to " + String.format("%02d", currentTarget.getId()));
+      }
     break;
     }
   }
@@ -235,12 +236,11 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
     }
   }
   
-
+  // this works for tablets and phones
   @Override
   public boolean onTouchEvent(MotionEvent e) {
     switch(e.getAction())
     {
-      // this works for tablets and phones
       case MotionEvent.ACTION_DOWN:
         Log.i(TAG, "onDown with pointer count: " + e.getPointerCount());
         sendMessage("FF00000");
@@ -267,7 +267,6 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
 
   private void setupBluetooth() {
     Log.d(TAG, "setupBluetooth()");
-
     // Initialize the BluetoothChatService to perform bluetooth connections
     mConnectionManager = new BluetoothChatService(this, mHandler);
   }
@@ -327,6 +326,7 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
   
   private boolean firstHalfBT = false;
   private String BTMessage = null;
+  private MainActivity context = this;
   
   private void handleBTMessage(String message) {
     Log.i(TAG, "Handling BT received message: " + message);
@@ -356,22 +356,52 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
       catch (Exception e) {
         Log.d("debugging", "error in parsing");
       }
-    }
-
+    }    
+    handlePotentialTargets();
+  }
+  
+  private void handlePotentialTargets() {
     Collections.sort(potentialTargets, new IntensityCompare());
-    
     Log.i(TAG, potentialTargets.toString());
     
-    // now Arduino returns, and then we openOptionsMenu
     if (potentialTargets.size() > 1) {
+      currentIndex = 0;
       sendMessage( "H" + String.format("%02d", potentialTargets.get(0).getId()));
-      mainMessage.setAlpha((float) 0);
-      openOptionsMenu();
+      sendMessage( "H" + String.format("%02d", potentialTargets.get(0).getId()));
+      // mainMessage.setAlpha((float) 0);
+      // the menu options now doesn't work (for fling gesture), we don't open then
+      // openOptionsMenu();
+      
+      // we enter into room activity
+      level = ROOM_LEVEL;
+      setContentView(R.layout.room_activity);
+      
+      holder = (LinearLayout) findViewById(R.id.list_holder);
+      holder.removeAllViews();
+      for (PhysicalTarget pt:potentialTargets){
+        TextView t = new TextView(context);
+        t.setText(pt.getName());
+        t.setId(pt.getId());
+        t.setTextSize(textSize);
+        t.setPadding(0, 0, 60, 0);
+        if ( potentialTargets.indexOf(pt) == 0) {
+          t.setTextColor(selectedColor);
+          t.setAlpha(1f);
+        }
+        else{
+          t.setTextColor(fadedColor);
+          t.setAlpha(outOfFocus);
+        }
+        holder.addView(t);
+      }
     }
+    
     else if (potentialTargets.size() == 1) {
       Log.i(TAG, "get one target");
-      isConnected = true;
+      mainMessage = (TextView) findViewById(R.id.mainMessage);
       mainMessage.setText(String.format("%02d", potentialTargets.get(0).getId()));
+      isConnected = true;
+      sendMessage("C" + String.format("%02d", potentialTargets.get(0).getId()));
       sendMessage("C" + String.format("%02d", potentialTargets.get(0).getId()));
     }
   }
@@ -383,15 +413,13 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
   public void initializeObjects() {
     potentialTargets = new ArrayList<PhysicalTarget>();
     targets = new HashMap<Integer, PhysicalTarget>();
-		
+
     for (int i = 0; i < 20; ++i) {
       targets.put(i, new PhysicalTarget(String.format("%02d", i), i));
     }
   }
 
   public void clearPotentialTargets() {
-    // we should never clear the objects
-    // objects.clear();
     potentialTargets.clear();
   }
 
@@ -436,11 +464,14 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
   @Override
   public void onBackPressed() {
     Log.i("myGesture", "onBackPressed");
-    if (isConnected) {
+    if (isConnected || level == ROOM_LEVEL) {      
+      setContentView(R.layout.activity_main);
+      isConnected = false;
+      level = LIMBO;
+      mainMessage = (TextView) findViewById(R.id.mainMessage);
       mainMessage.setText("tap to connect");
       sendMessage("D");
       clearPotentialTargets();
-      isConnected = false;
       return;
     }
     else {
@@ -455,13 +486,39 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
     return false;
   }
 
-
-
   @Override
-  public boolean onFling(MotionEvent arg0, MotionEvent arg1, float arg2,
-      float arg3) {
+  public boolean onFling(MotionEvent arg0, MotionEvent arg1, 
+      float velocityX, float velocityY) {
     // TODO Auto-generated method stub
     Log.i(TAG, "onFling");
+    
+    if (level == ROOM_LEVEL) {
+      if (velocityX>0){
+        if (currentIndex < potentialTargets.size() - 1) {
+          currentIndex++;
+        }
+      }
+      else {
+        if (currentIndex > 0) {
+          currentIndex--;
+        }
+      }
+      for (int i = 0 ; i < potentialTargets.size(); i ++){
+        TextView currentText = (TextView) holder.getChildAt(i);
+        if (currentText.getText().equals(potentialTargets.get(currentIndex).getName())){
+          currentText.setTextColor(selectedColor);
+          currentText.setAlpha(1f);
+          
+          sendMessage( "H" + String.format("%02d", potentialTargets.get(currentIndex).getId()));
+          sendMessage( "H" + String.format("%02d", potentialTargets.get(currentIndex).getId()));
+
+        }
+        else {
+          currentText.setTextColor(fadedColor);
+          currentText.setAlpha(outOfFocus);
+        }
+      }
+    }
     return false;
   }
 
@@ -489,16 +546,26 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
   @Override
   public void onShowPress(MotionEvent arg0) {
     // TODO Auto-generated method stub
-    
   }
 
   @Override
   public boolean onSingleTapUp(MotionEvent arg0) {
     if (D) Log.i(TAG, "single tap up");
-    if (toConnect) {
+    if (toConnect && !isConnected && level != ROOM_LEVEL) {
       // send out message
       sendMessage("FF00000");
-    } 
+    }
+    if (level == ROOM_LEVEL && potentialTargets.size() > currentIndex) {
+      if (D) Log.i(TAG, "Room level " + potentialTargets.toString() + "current: " + currentIndex);
+
+      setContentView(R.layout.activity_main);
+      isConnected = true;
+      mainMessage = (TextView) findViewById(R.id.mainMessage);
+      mainMessage.setText(String.format("%02d", potentialTargets.get(currentIndex).getId()));
+      sendMessage("C" + String.format("%02d", potentialTargets.get(currentIndex).getId()));
+      
+      sendMessage("C" + String.format("%02d", potentialTargets.get(currentIndex).getId()));
+    }
     return false;
   }  
   
