@@ -1,13 +1,17 @@
 package edu.eecs.berkeley.glassremote;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 import android.util.Log;
 
 public class PhysicalTarget {
 
+  
   private final String TAG = "PhysicalTarget";
   private String name;
+
+  private int intensity;
 
   public final int DIRECTION_LEFT = 1;
   public final int DIRECTION_RIGHT = 2;
@@ -106,6 +110,14 @@ public class PhysicalTarget {
 
   public void setYaw(float yaw) {
     this.yaw = yaw;
+  }
+
+  public int getIntensity() {
+    return intensity;
+  }
+
+  public void setIntensity(int intensity) {
+    this.intensity = intensity;
   }
 
 }

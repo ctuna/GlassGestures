@@ -1,12 +1,9 @@
 package edu.eecs.berkeley.glassremote;
 
 import java.util.ArrayList;
-import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map.Entry;
 
-import edu.eecs.berkeley.glassremote.R;
 import android.R.color;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -17,20 +14,16 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.GestureDetector;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup.LayoutParams;
-import android.widget.CheckBox;
-import android.widget.HorizontalScrollView;
+import android.view.View.OnTouchListener;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.ScrollView;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,11 +40,10 @@ import android.widget.Toast;
 
 // main work now is how to support these in the UI
 
-public class MainActivity extends Activity implements GestureDetector.OnGestureListener {
+public class MainActivity extends Activity implements GestureDetector.OnGestureListener, OnTouchListener {
 
   GestureDetector gestureDetector;
 
-  
   // Debugging
   private static final String TAG = "GlassRemote";
   private static final boolean D = true;
@@ -77,7 +69,7 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
   // when toConnect is true, the Glass will connect to BT
   // otherwise, it will pretend to
   private boolean toConnect = true;
-  private boolean isSelected = false;
+  private boolean isConnected = false;
 
   //Name of the connected device
   private String mConnectedDeviceName = null;   
@@ -116,12 +108,9 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
   private int level;
 
   // VARIABLE CONTROL
-  private ArrayList<PhysicalTarget> room;   // room list out all the available targets in this room
-  private HashMap<Integer, PhysicalTarget> objects;
+  private ArrayList<PhysicalTarget> potentialTargets;   // room list out all the available targets in this room
+  private HashMap<Integer, PhysicalTarget> targets;
   private PhysicalTarget currentObject;
-  private Variable currentVariable;
-  private int varIndex = 0;
-  private int objectIndex = 0;
 
   // MESSAGING
   private BluetoothChatService mConnectionManager = null;
@@ -146,7 +135,7 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
     
     nameOfObject = (TextView) findViewById(R.id.name_of_object);
     mainMessage = (TextView) findViewById(R.id.mainMessage);
-   
+    
     gestureDetector = new GestureDetector(this, this);
 
   }
@@ -160,17 +149,19 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
 
     // load all the targets
     initializeObjects();
-//
-//    if (mConnectionManager == null) 
-//      setupBluetooth();
-//    
-//    // Get local Bluetooth adapter
-//    mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-//    // Get the BluetoothDevice object
-//    BluetoothDevice device = mBluetoothAdapter.getRemoteDevice( btModuleAddress );
-//    // Attempt to connect to the device
-//    // false means insecure connection, which doesn't matter now
-//    mConnectionManager.connect(device, false);
+
+    if (toConnect) {
+      if (mConnectionManager == null) 
+        setupBluetooth();
+      
+      // Get local Bluetooth adapter
+      mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+      // Get the BluetoothDevice object
+      BluetoothDevice device = mBluetoothAdapter.getRemoteDevice( btModuleAddress );
+      // Attempt to connect to the device
+      // false means insecure connection, which doesn't matter now
+      mConnectionManager.connect(device, false);
+    }
   }
 
   @Override
@@ -180,7 +171,6 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
     return true;
   }
   
-  // laying down menus for the interaction
   /**
    * Gets called every time the user presses the menu button.
    * Use if your menu is dynamic.
@@ -188,26 +178,24 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
   @Override
   public boolean onPrepareOptionsMenu(Menu menu) {
       menu.clear();
-      menu.add(0, Menu.FIRST, Menu.NONE, "test");
-      menu.add(0, Menu.FIRST + 1, Menu.NONE, "test");
+      for (PhysicalTarget t:potentialTargets) {
+        menu.add(0, Menu.FIRST + potentialTargets.indexOf(t), Menu.NONE, t.getName());
+      }
       return super.onPrepareOptionsMenu(menu);
   }
   
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
       super.onOptionsItemSelected(item);
-
-      switch (item.getItemId()) {
-      case Menu.FIRST:
-        Log.i(TAG, "Menu first clicked"); break;
-      case Menu.FIRST + 1: 
-        Log.i(TAG, "Menu second clicked"); break;
-      }
+      Log.i(TAG, potentialTargets.get(item.getItemId()).getName());
       return false;
   }
+  
   @Override
   public void onOptionsMenuClosed(Menu menu) {
     mainMessage.setAlpha(1);
+    sendMessage("D");
+    clearPotentialTargets();
     super.onOptionsMenuClosed(menu);  
   }
   
@@ -245,7 +233,24 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
       this.mWakeLock.release();
       this.mWakeLock = null;
     }
+  }
+  
 
+  @Override
+  public boolean onTouchEvent(MotionEvent e) {
+    switch(e.getAction())
+    {
+      // this works for tablets and phones
+      case MotionEvent.ACTION_DOWN:
+        Log.i(TAG, "onDown with pointer count: " + e.getPointerCount());
+        sendMessage("FF00000");
+        break;
+      case MotionEvent.ACTION_MOVE:
+        break;
+      case MotionEvent.ACTION_UP:
+        break;
+    }
+    return super.onTouchEvent(e);
   }
 
   @Override
@@ -276,26 +281,6 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
       mConnectionManager.stop();
   }
   
-  /**
-   * Sends a message.
-   * @param message  A string of text to send.
-   */
-  private void sendMessage(String message) {
-    // Check that we're actually connected before trying anything
-    if (mConnectionManager.getState() != BluetoothChatService.STATE_CONNECTED) {
-      Toast.makeText(this, R.string.not_connected, Toast.LENGTH_SHORT).show();
-      return;
-    }
-
-    // Check that there's actually something to send
-    if (message.length() > 0) {
-      // Get the message bytes and tell the BluetoothChatService to write
-      byte[] send = message.getBytes();
-      mConnectionManager.write(send);
-    }
-  }
-
-
   // The Handler that gets information back from the BluetoothChatService
   private final Handler mHandler = new Handler() {
     @Override
@@ -305,6 +290,7 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
         if(D) Log.i(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
         switch (msg.arg1) {
         case BluetoothChatService.STATE_CONNECTED:
+          MainActivity.this.sendMessage("D");
           break;
         case BluetoothChatService.STATE_CONNECTING:
           break;
@@ -314,9 +300,9 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
         }
         break;
       case MESSAGE_WRITE:
-        byte[] writeBuf = (byte[]) msg.obj;
+        // byte[] writeBuf = (byte[]) msg.obj;
         // construct a string from the buffer
-        String writeMessage = new String(writeBuf);
+        // String writeMessage = new String(writeBuf);
         break;
       case MESSAGE_READ:
         byte[] readBuf = (byte[]) msg.obj;
@@ -339,68 +325,92 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
     }
   };
   
+  private boolean firstHalfBT = false;
+  private String BTMessage = null;
+  
   private void handleBTMessage(String message) {
     Log.i(TAG, "Handling BT received message: " + message);
-    if (level == LIMBO) {
+    if (firstHalfBT) {
+      BTMessage += message;
+      if (!message.contains("\n")) 
+        return;
+      else 
+        firstHalfBT = false;
+    }
+    if (! message.contains("\n") ) {
+      BTMessage = message;
+      firstHalfBT = true;
+      return;
+    }
+    // BTMessage examples: "5:123, 12:231,"
+    String[] replies = BTMessage.split(",");
+    for (String r:replies) {
+      String[] data = r.split(":");
+
       try {
-        objectIndex = Integer.parseInt(message.replaceAll("(\\r|\\n)", ""));
-        currentObject = objects.get(objectIndex);
-        level = OBJECT_LEVEL;
+        int objectId = Integer.parseInt(data[0].replaceAll("( |\\r|\\n)", ""));
+        int objectValue = Integer.parseInt(data[1].replaceAll("( |\\r|\\n)", ""));
+        addTargetToPotentialList(objectId, objectValue);
+        Log.i(TAG, Integer.toString(objectId) + ":" + Integer.toString(objectValue));
       }
       catch (Exception e) {
-        // no clients in room
-        Log.d("debugging", "room size is 0");
-        Toast toast = Toast.makeText(getApplicationContext(),
-            "failed connection", Toast.LENGTH_SHORT);
-        toast.show();
+        Log.d("debugging", "error in parsing");
       }
     }
-    else {
-      // not in LIMBO
+
+    Collections.sort(potentialTargets, new IntensityCompare());
+    
+    Log.i(TAG, potentialTargets.toString());
+    
+    // now Arduino returns, and then we openOptionsMenu
+    if (potentialTargets.size() > 1) {
+      sendMessage( "H" + String.format("%02d", potentialTargets.get(0).getId()));
+      mainMessage.setAlpha((float) 0);
+      openOptionsMenu();
     }
-    resetContentView();
+    else if (potentialTargets.size() == 1) {
+      Log.i(TAG, "get one target");
+      isConnected = true;
+      mainMessage.setText(String.format("%02d", potentialTargets.get(0).getId()));
+      sendMessage("C" + String.format("%02d", potentialTargets.get(0).getId()));
+    }
   }
-  
+ 
   public boolean getConnectingToLaptop() {
     return toConnect;
   }
 
   public void initializeObjects() {
-    room = new ArrayList<PhysicalTarget>();
-    objects = new HashMap<Integer, PhysicalTarget>();
+    potentialTargets = new ArrayList<PhysicalTarget>();
+    targets = new HashMap<Integer, PhysicalTarget>();
 		
     for (int i = 0; i < 20; ++i) {
-      objects.put(i, new PhysicalTarget(String.format("%02d", i), i));
+      targets.put(i, new PhysicalTarget(String.format("%02d", i), i));
     }
   }
 
-  public void refreshObjects() {
+  public void clearPotentialTargets() {
     // we should never clear the objects
     // objects.clear();
-    room.clear();
+    potentialTargets.clear();
   }
 
-  public void addObjectToRoom(int key) {
-    if (objects.containsKey(key)) {
+  public void addTargetToPotentialList(int key, int intensity) {
+    if (targets.containsKey(key)) {
       // DON'T ADD THE SAME OBJECT TWICE
-      if (!room.contains(objects.get(key))) {
-	room.add(objects.get(key));
-	Log.i("debugging", "added " + objects.get(key).getName()
-	      + " to room");
+      PhysicalTarget current = targets.get(key);
+      if ( !potentialTargets.contains(current) ) {
+        current.setIntensity(intensity);
+        potentialTargets.add(current);
+        Log.i("debugging", "added " + current.getName() + " to room");
       }
-    } else
-      throw new NumberFormatException("key for object: " + key
-				      + " was invalid");
+      else {
+        current.setIntensity(intensity);
+      }
+    } else {
+      throw new NumberFormatException("key for object: " + key + " was invalid");
+    }
   }
-
-  ArrayList<LinearLayout> views = new ArrayList<LinearLayout>();
-  MainActivity context = this;
-
-  public boolean isConnectingToLaptop() {
-    return toConnect;
-  }
-
-  ProgressBar variableProgressBar;
 
   @Override
   public boolean onGenericMotionEvent(MotionEvent event) {
@@ -422,25 +432,15 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
     return super.onGenericMotionEvent(event);
   }
   
-//  @Override
-//  public boolean onSingleTapUp(MotionEvent e) {
-//    if (D) Log.i(TAG, "single tap up");
-////    
-////    if (level == LIMBO) {
-////      if (toConnect) {
-////        sendMessage("FF");
-////        // send out message
-////      }
-////    }
-////    resetContentView();
-//    return false;
-//  }
-
+  
   @Override
   public void onBackPressed() {
     Log.i("myGesture", "onBackPressed");
-    if (isSelected) {
-      isSelected = false;
+    if (isConnected) {
+      mainMessage.setText("tap to connect");
+      sendMessage("D");
+      clearPotentialTargets();
+      isConnected = false;
       return;
     }
     else {
@@ -451,6 +451,7 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
   @Override
   public boolean onDown(MotionEvent arg0) {
     // TODO Auto-generated method stub
+    Log.i(TAG, "onDown event triggered!");
     return false;
   }
 
@@ -460,6 +461,7 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
   public boolean onFling(MotionEvent arg0, MotionEvent arg1, float arg2,
       float arg3) {
     // TODO Auto-generated method stub
+    Log.i(TAG, "onFling");
     return false;
   }
 
@@ -471,16 +473,18 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
     
   }
 
-
+  @Override
+  public void onContentChanged () {
+    Log.i(TAG, "onContentChanged");
+  }
 
   @Override
   public boolean onScroll(MotionEvent arg0, MotionEvent arg1, float arg2,
       float arg3) {
+    Log.i(TAG, "onScroll");
     // TODO Auto-generated method stub
     return false;
   }
-
-
 
   @Override
   public void onShowPress(MotionEvent arg0) {
@@ -488,12 +492,37 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
     
   }
 
+  @Override
+  public boolean onSingleTapUp(MotionEvent arg0) {
+    if (D) Log.i(TAG, "single tap up");
+    if (toConnect) {
+      // send out message
+      sendMessage("FF00000");
+    } 
+    return false;
+  }  
+  
+  private void sendMessage(String message) {
+    // Check that we're actually connected before trying anything
+    if (mConnectionManager.getState() != BluetoothChatService.STATE_CONNECTED) {
+      Toast.makeText(this, R.string.not_connected, Toast.LENGTH_SHORT).show();
+      return;
+    }
+
+    // Check that there's actually something to send
+    if (message.length() > 0) {
+      // Get the message bytes and tell the BluetoothChatService to write
+      byte[] send = message.getBytes();
+      mConnectionManager.write(send);
+    }
+  }
+
 
 
   @Override
-  public boolean onSingleTapUp(MotionEvent arg0) {
-    mainMessage.setAlpha((float) 0);
-    openOptionsMenu();    
+  public boolean onTouch(View arg0, MotionEvent arg1) {
+    // TODO Auto-generated method stub
+    Log.i(TAG, "onTouch");
     return false;
   }
 }
