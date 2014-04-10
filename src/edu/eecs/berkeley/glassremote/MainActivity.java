@@ -167,7 +167,7 @@ public class MainActivity extends Activity
     // orientation
     locations = new LocationMap();
     orientation = new Orientation();
-    locations.loadMap(this);
+    // locations.loadMap(this);
     previousOrientations = new OrientationHistory(10);
 
   }
@@ -320,16 +320,15 @@ public class MainActivity extends Activity
       orientation.setOrientation(rawOrientation[0], rawOrientation[1]);
       previousOrientations.add(new Orientation(orientation));
       int match = locations.getMatch(previousOrientations);
-      if (match >= 0) {
-        Log.i("matched: ", "" + match);
+      if (match > 0) {
         if (previousMatch != match && this.quasiMode == true) {
-        // this is where we found something
-        previousMatch = match;
-        Log.i(TAG, "Found id: " + previousMatch);
-        // Location found = locations.getById(match);
-        // match is the id
-        sendMessage( "H" + String.format("%02d", match));
-        sendMessage( "H" + String.format("%02d", match));
+          // this is where we found something
+          sendMessage( "H" + String.format("%02d", match));
+          previousMatch = match;
+          Log.i(TAG, "Found id: " + previousMatch);
+          // Location found = locations.getById(match);
+          // match is the id
+          sendMessage( "H" + String.format("%02d", match));
         }
       }
     }
