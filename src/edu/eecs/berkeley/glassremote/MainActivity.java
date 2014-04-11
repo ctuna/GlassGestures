@@ -161,6 +161,7 @@ public class MainActivity extends Activity
     
     nameOfObject = (TextView) findViewById(R.id.name_of_object);
     mainMessage = (TextView) findViewById(R.id.mainMessage);
+    mainMessage.setText("Loading");
     
     gestureDetector = new GestureDetector(this, this);
     
@@ -179,6 +180,8 @@ public class MainActivity extends Activity
     super.onStart();
     if(D) Log.e(TAG, "++ ON START ++");
 
+    ((TextView) findViewById(R.id.mainMessage)).setText("Loading");
+    
     // load all the targets
     initializeObjects();
 
@@ -376,6 +379,7 @@ public class MainActivity extends Activity
         if(D) Log.i(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
         switch (msg.arg1) {
         case BluetoothChatService.STATE_CONNECTED:
+          mainMessage.setText("tap to connect");
           MainActivity.this.sendMessage("D");
           break;
         case BluetoothChatService.STATE_CONNECTING:
