@@ -1,6 +1,8 @@
 package edu.eecs.berkeley.glassremote;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 
@@ -38,7 +40,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
 // This main activity maintains the BT connection
 // takes charge of the mode
 // by default, the app does nothing but only display "move to select\n touch to adjust\n tap to connect"
@@ -52,22 +53,23 @@ import android.widget.Toast;
 // main work now is how to support these in the UI
 
 public class MainActivity extends Activity 
-  implements GestureDetector.OnGestureListener, OnTouchListener, SensorEventListener {
-
+  implements GestureDetector.OnGestureListener, OnTouchListener {
+// commented out SensorEventListener for reliability
   
   // Glass sensors  
-  private SensorManager mSensorManager;
-  private Sensor mSensor;
+//  private SensorManager mSensorManager;
+//  private Sensor mSensor;
+//  
   /* Not proud of this global, but hard to make it cleaner. */
-  private Orientation orientation;
-  private OrientationHistory previousOrientations;
-  /* Sorted list of rotation matrices at which something was tagged. */
-  private LocationMap locations;
-  /* Next id of device. */
-  private int nextId = 0;
+//  private Orientation orientation;
+//  private OrientationHistory previousOrientations;
+//  /* Sorted list of rotation matrices at which something was tagged. */
+//  private LocationMap locations;
+//  /* Next id of device. */
+//  private int nextId = 0;
 
 
-  private boolean quasiMode = false;
+//  private boolean quasiMode = false;
   GestureDetector gestureDetector;
 
   // Debugging
@@ -166,10 +168,10 @@ public class MainActivity extends Activity
     gestureDetector = new GestureDetector(this, this);
     
     // orientation
-    locations = new LocationMap();
-    orientation = new Orientation();
-    // locations.loadMap(this);
-    previousOrientations = new OrientationHistory(10);
+//    locations = new LocationMap();
+//    orientation = new Orientation();
+//    // locations.loadMap(this);
+//    previousOrientations = new OrientationHistory(10);
 
   }
   public HorizontalScrollView scroller;
@@ -185,6 +187,14 @@ public class MainActivity extends Activity
     // load all the targets
     initializeObjects();
 
+    
+//    // Get an instance of the SensorManager
+//    mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+//    mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
+//
+//    // Get updates every 10ms.
+//    mSensorManager.registerListener(this, mSensor, 10000);
+
     if (toConnect) {
       if (mConnectionManager == null) 
         setupBluetooth();
@@ -198,13 +208,6 @@ public class MainActivity extends Activity
       mConnectionManager.connect(device, false);
     }
     
-    // Get an instance of the SensorManager
-    mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-    mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
-
-    // Get updates every 10ms.
-    mSensorManager.registerListener(this, mSensor, 10000);
-
   }
 
   @Override
@@ -264,9 +267,9 @@ public class MainActivity extends Activity
   @Override
   protected void onStop() {
     sendMessage("D");
-    mSensorManager.unregisterListener(this);
+    // mSensorManager.unregisterListener(this);
     if(D) Log.e(TAG, "-- ON STOP --");
-    locations.saveMap(this);
+//    locations.saveMap(this);
     super.onStop();
   }
 
@@ -311,36 +314,36 @@ public class MainActivity extends Activity
   }
 
   private int previousMatch = 0;
-  public void onSensorChanged(SensorEvent event) {
-    if (event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR) {
-      float[] tmp = new float[16];
-      float[] remapped = new float[16];
-      float[] rawOrientation = new float[3];
-      SensorManager.getRotationMatrixFromVector(tmp, event.values);
-      SensorManager.remapCoordinateSystem(tmp, SensorManager.AXIS_X, SensorManager.AXIS_Z, remapped);
-      SensorManager.getOrientation(remapped, rawOrientation);
-
-      orientation.setOrientation(rawOrientation[0], rawOrientation[1]);
-      previousOrientations.add(new Orientation(orientation));
-      int match = locations.getMatch(previousOrientations);
-      if (match > 0) {
-        if (previousMatch != match && this.quasiMode == true) {
-          // this is where we found something
-          sendMessage( "H" + String.format("%02d", match));
-          previousMatch = match;
-          Log.i(TAG, "Found id: " + previousMatch);
-          // Location found = locations.getById(match);
-          // match is the id
-          sendMessage( "H" + String.format("%02d", match));
-        }
-      }
-    }
-  }
+//  public void onSensorChanged(SensorEvent event) {
+//    if (event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR) {
+//      float[] tmp = new float[16];
+//      float[] remapped = new float[16];
+//      float[] rawOrientation = new float[3];
+//      SensorManager.getRotationMatrixFromVector(tmp, event.values);
+//      SensorManager.remapCoordinateSystem(tmp, SensorManager.AXIS_X, SensorManager.AXIS_Z, remapped);
+//      SensorManager.getOrientation(remapped, rawOrientation);
+//
+//      orientation.setOrientation(rawOrientation[0], rawOrientation[1]);
+//      previousOrientations.add(new Orientation(orientation));
+//      int match = locations.getMatch(previousOrientations);
+//      if (match > 0) {
+//        if (previousMatch != match && this.quasiMode == true) {
+//          // this is where we found something
+//          sendMessage( "H" + String.format("%02d", match));
+//          previousMatch = match;
+//          Log.i(TAG, "Found id: " + previousMatch);
+//          // Location found = locations.getById(match);
+//          // match is the id
+//          sendMessage( "H" + String.format("%02d", match));
+//        }
+//      }
+//    }
+//  }
   
   public void updateMap(Location updated) {
       int id = updated.id;
       Log.d("Finder", "Updating location for " + Integer.toString(id));
-      locations.update(updated);
+     //  locations.update(updated);
   }
   /**
    * Update the location of @ids such that they are centered around @orientation
@@ -351,9 +354,9 @@ public class MainActivity extends Activity
    * @param ids              The devices to update
    * @param orientation      Where the user is looking
    */
-  public void updateMap(ArrayList<Integer> ids, Orientation orientation) {
-      locations.update(ids, orientation);
-  }
+//  public void updateMap(ArrayList<Integer> ids, Orientation orientation) {
+//      locations.update(ids, orientation);
+//  }
   
   private void setupBluetooth() {
     Log.d(TAG, "setupBluetooth()");
@@ -418,10 +421,9 @@ public class MainActivity extends Activity
   private boolean firstHalfBT = false;
   private String BTMessage = null;
   private MainActivity context = this;
-  private int actionDownCount;
   
   private void handleBTMessage(String message) {
-    Log.i(TAG, "Handling BT received message: " + message);
+    Log.e("GlasSees", "time: " + Calendar.getInstance().getTimeInMillis() + " BT message level: " + message);
     if (firstHalfBT) {
       BTMessage += message;
       if (!message.contains("\n")) 
@@ -450,15 +452,17 @@ public class MainActivity extends Activity
     }
     catch (Exception e) {
       Log.d("debugging", "error in parsing");
-    }    
+    }
     handlePotentialTargets();
   }
   
   private void handlePotentialTargets() {
-    Collections.sort(potentialTargets, new IntensityCompare());
+    // Collections.sort(potentialTargets, new IntensityCompare());
+    
     Log.i(TAG, potentialTargets.toString());
     
     if (potentialTargets.size() > 1) {
+      Log.e("GlasSees", "time: " + Calendar.getInstance().getTimeInMillis() + " Room level: " + potentialTargets.toString() + " current: " + potentialTargets.get(0).getId());
       currentIndex = 0;
       sendMessage( "H" + String.format("%02d", potentialTargets.get(0).getId()));
       sendMessage( "H" + String.format("%02d", potentialTargets.get(0).getId()));
@@ -492,18 +496,16 @@ public class MainActivity extends Activity
     
     else if (potentialTargets.size() == 1) {
       connectToTarget(potentialTargets.get(0).getId());
-      updateMap(new Location(potentialTargets.get(0).getId(), orientation));
+      // updateMap(new Location(potentialTargets.get(0).getId(), orientation));
       Log.i(TAG, "get one target");
     }
   }
  
   private void connectToTarget(int id) {
     sendMessage("C" + String.format("%02d", id));
-
-    ((TextView) findViewById(R.id.mainMessage)).setText(String.format("%02d", id));
+    ((TextView) findViewById(R.id.mainMessage)).setText("connected to " + String.format("%02d", id));
     isConnected = true;
-    Log.i(TAG, "connected to " + id);
-
+    Log.e("GlasSees", "time: " + Calendar.getInstance().getTimeInMillis() + " Connected to " + id);
     sendMessage("C" + String.format("%02d", id));
   }
   
@@ -541,14 +543,14 @@ public class MainActivity extends Activity
     }
   }
 
-  final Runnable enterQuasi = new Runnable()
-  {
-    public void run() 
-    {
-      quasiMode = true;
-      Log.i(TAG, "entering Quasimode");
-    }
-  };
+//  final Runnable enterQuasi = new Runnable()
+//  {
+//    public void run() 
+//    {
+//      quasiMode = true;
+//      Log.i(TAG, "entering Quasimode");
+//    }
+//  };
 
   Handler mDelayHandler = new Handler();
 
@@ -558,20 +560,20 @@ public class MainActivity extends Activity
     switch (event.getAction()) {
     case MotionEvent.ACTION_DOWN:
       // make sure we are not in quasi-mode
-      this.quasiMode = false;
-      previousMatch = 0;
-      mDelayHandler.postDelayed(enterQuasi, 200);
+      // this.quasiMode = false;
+      // previousMatch = 0;
+      // mDelayHandler.postDelayed(enterQuasi, 200);
       break;
     case MotionEvent.ACTION_MOVE:
       break;
     case MotionEvent.ACTION_UP:
-      mDelayHandler.removeCallbacks(enterQuasi);
-      // make confirmation
-      Log.e(TAG, "onTouchUp");
-      if (previousMatch != 0) {
-        connectToTarget(previousMatch);
-      }
-      this.quasiMode = false;
+//      mDelayHandler.removeCallbacks(enterQuasi);
+//      // make confirmation
+//      Log.e(TAG, "onTouchUp");
+//      if (previousMatch != 0) {
+//        connectToTarget(previousMatch);
+//      }
+      //this.quasiMode = false;
 
       break;
     default:  
@@ -582,27 +584,30 @@ public class MainActivity extends Activity
   
   @Override
   public void onBackPressed() {
-    mDelayHandler.removeCallbacks(enterQuasi);
+    // mDelayHandler.removeCallbacks(enterQuasi);
     Log.i("myGesture", "onBackPressed");
     if (isConnected || level == ROOM_LEVEL) {      
       setContentView(R.layout.activity_main);
       isConnected = false;
+      sendMessage("D");
       level = LIMBO;
       mainMessage = (TextView) findViewById(R.id.mainMessage);
       mainMessage.setText("tap to connect");
       sendMessage("D");
+      Log.e("GlasSees", "time: " + Calendar.getInstance().getTimeInMillis() + " Disconnected");
+
       clearPotentialTargets();
       return;
     }
     else {
-      super.onBackPressed();
+      // super.onBackPressed();
     } 
   }
 
   @Override
   public boolean onDown(MotionEvent arg0) {
     // TODO Auto-generated method stub
-    Log.i(TAG, "onDown event triggered!");
+    // Log.i(TAG, "onDown event triggered!");
     return false;
   }
 
@@ -610,7 +615,7 @@ public class MainActivity extends Activity
   public boolean onFling(MotionEvent arg0, MotionEvent arg1, 
       float velocityX, float velocityY) {
     // TODO Auto-generated method stub
-    Log.i(TAG, "onFling");
+    // Log.i(TAG, "onFling");
     
     if (level == ROOM_LEVEL) {
       if (velocityX>0){
@@ -628,7 +633,9 @@ public class MainActivity extends Activity
         if (currentText.getText().equals(potentialTargets.get(currentIndex).getName())){
           currentText.setTextColor(selectedColor);
           currentText.setAlpha(1f);
-          
+
+          Log.e("GlasSees", "time: " + Calendar.getInstance().getTimeInMillis() + " Change to: " + potentialTargets.get(currentIndex).getId());
+
           sendMessage( "H" + String.format("%02d", potentialTargets.get(currentIndex).getId()));
           sendMessage( "H" + String.format("%02d", potentialTargets.get(currentIndex).getId()));
 
@@ -653,7 +660,7 @@ public class MainActivity extends Activity
   @Override
   public boolean onScroll(MotionEvent arg0, MotionEvent arg1, float arg2,
       float arg3) {
-    Log.i(TAG, "onScroll");
+    // Log.i(TAG, "onScroll");
     // TODO Auto-generated method stub
     return false;
   }
@@ -665,19 +672,20 @@ public class MainActivity extends Activity
 
   @Override
   public boolean onSingleTapUp(MotionEvent arg0) {
-    this.quasiMode = false;
+    // this.quasiMode = false;
 
     if (D) Log.i(TAG, "single tap up");
     if (toConnect && !isConnected && level != ROOM_LEVEL) {
       // send out message
-      sendMessage("FF00000");
+      sendMessage("FF");
+      Log.e("GlasSees", "time: " + Calendar.getInstance().getTimeInMillis() + " Tapped to connect");
+      sendMessage("FF");
     }
     if (level == ROOM_LEVEL && potentialTargets.size() > currentIndex) {
-      if (D) Log.i(TAG, "Room level " + potentialTargets.toString() + "current: " + currentIndex);
-
+      
       setContentView(R.layout.activity_main);
       connectToTarget(potentialTargets.get(currentIndex).getId());
-      updateMap(new Location(potentialTargets.get(currentIndex).getId(), orientation));
+      // updateMap(new Location(potentialTargets.get(currentIndex).getId(), orientation));
     }
     return false;
   }  
@@ -705,9 +713,9 @@ public class MainActivity extends Activity
     return false;
   }
 
-  @Override
-  public void onAccuracyChanged(Sensor sensor, int accuracy) {
-    // TODO Auto-generated method stub
-    
-  }
+//  @Override
+//  public void onAccuracyChanged(Sensor sensor, int accuracy) {
+//    // TODO Auto-generated method stub
+//    
+//  }
 }
